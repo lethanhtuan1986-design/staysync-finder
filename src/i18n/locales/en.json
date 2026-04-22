@@ -160,5 +160,18 @@
     "title": "404",
     "message": "Page not found",
     "backHome": "Return to Home"
+  },
+  "provincePicker": {
+    "title": "Where do you want to find a home?",
+    "desc": "Choose a province/city so we can show more relevant suggestions.",
+    "searchPlaceholder": "Search province/city...",
+    "popular": "Popular",
+    "all": "All provinces/cities",
+    "empty": "Not found",
+    "confirm": "Confirm",
+    "skip": "Skip"
+  },
+  "navbar": {
+    "changeProvince": "Change province/city"
   }
 }

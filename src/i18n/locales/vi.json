@@ -122,6 +122,19 @@
     "empty": "Chưa có phòng nào được lưu",
     "emptyHint": "Nhấn ❤️ trên các phòng bạn thích để lưu lại"
   },
+  "provincePicker": {
+    "title": "Bạn muốn tìm nhà ở đâu?",
+    "desc": "Chọn tỉnh/thành phố để chúng tôi gợi ý địa điểm chính xác hơn.",
+    "searchPlaceholder": "Tìm tỉnh/thành phố...",
+    "popular": "Phổ biến",
+    "all": "Tất cả tỉnh/thành phố",
+    "empty": "Không tìm thấy",
+    "confirm": "Xác nhận",
+    "skip": "Bỏ qua"
+  },
+  "navbar": {
+    "changeProvince": "Đổi tỉnh/thành phố"
+  },
   "mapPage": {
     "title": "Bản đồ phòng",
     "count": "{{count}} phòng trên bản đồ"
