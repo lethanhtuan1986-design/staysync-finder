@@ -2,11 +2,9 @@ import { HeroSearch } from "@/components/HeroSearch";
 import { AdvertisementCard } from "@/components/AdvertisementCard";
 import { CoreValues } from "@/components/CoreValues";
 import { CustomerReviews } from "@/components/CustomerReviews";
-import { TopPromoBanner } from "@/components/TopPromoBanner";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 import { FloatingCallButton } from "@/components/FloatingCallButton";
-import { AdBannersSection } from "@/components/AdBannersSection";
 
 import { SEO } from "@/components/SEO";
 import { useQuery } from "@tanstack/react-query";
@@ -128,10 +126,8 @@ const Index = () => {
         title="XanhStay - Tìm phòng, căn hộ cho thuê"
         description="Nền tảng tìm phòng và căn hộ cho thuê thông minh tại Việt Nam."
       />
-      <TopPromoBanner />
       <Navbar />
       <HeroSearch />
-      <AdBannersSection />
 
       {/* Listings */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
