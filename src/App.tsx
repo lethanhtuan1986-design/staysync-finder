@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -13,8 +14,19 @@ import MapSearchPage from "./pages/MapSearchPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { ScrollToTop } from "./components/ScrollToTop.tsx";
 import { MobileBottomNav } from "./components/MobileBottomNav.tsx";
+import { ProvincePickerModal } from "./components/ProvincePickerModal.tsx";
+import { useSelectedProvince } from "./hooks/useSelectedProvince.ts";
 
 const queryClient = new QueryClient();
+
+const ProvinceGate = () => {
+  const { isReady } = useSelectedProvince();
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!isReady) setOpen(true);
+  }, [isReady]);
+  return <ProvincePickerModal open={open} onOpenChange={setOpen} forced={!isReady} />;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -30,10 +42,11 @@ const App = () => (
           <Route path="/advertisement/:id" element={<PropertyDetail />} />
           <Route path="/saved" element={<SavedRooms />} />
           <Route path="/policy" element={<TermsPage />} />
-          
+
           <Route path="*" element={<NotFound />} />
         </Routes>
         <MobileBottomNav />
+        <ProvinceGate />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
