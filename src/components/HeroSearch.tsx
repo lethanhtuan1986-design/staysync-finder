@@ -126,6 +126,13 @@ export const HeroSearch = () => {
 
   const advancedFilterCount = [wardId, priceUuid, sizeUuid, apartmentTypeUuid].filter(Boolean).length;
 
+  // Ưu tiên fullNameEn để bias Nominatim chính xác hơn.
+  const provinceEnrich =
+    provinces.find((p) => p.code === provinceId)?.fullNameEn ||
+    provinces.find((p) => p.code === provinceId)?.fullName ||
+    provinceName ||
+    "";
+
   const searchPanel = (
     <div className="bg-card/95 backdrop-blur-md rounded-2xl shadow-soft border border-border p-3 sm:p-4">
       {/* Main filters - single row */}
