@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { RADIUS_OPTIONS, DEFAULT_RADIUS_KM, NominatimResult, GeoBounds, getUserLocation } from "@/lib/geocoding";
-import type { PlacePrediction } from "@/hooks/useGooglePlaces";
 import { useQuery } from "@tanstack/react-query";
 import { SEO } from "@/components/SEO";
 import { Navbar } from "@/components/Navbar";
@@ -177,11 +176,8 @@ const MapSearchPage = () => {
 
   // Handle autocomplete selection: pan map + update search overlay
   const handleLocationSelect = useCallback(
-    (result: NominatimResult | PlacePrediction, bounds: GeoBounds) => {
-      const label =
-        "description" in result
-          ? (result as PlacePrediction).description
-          : (result as NominatimResult).display_name;
+    (result: NominatimResult, bounds: GeoBounds) => {
+      const label = result.display_name;
       setMapCenter({ lat: bounds.centerLat, lng: bounds.centerLng, zoom: 16, label });
     },
     [],
