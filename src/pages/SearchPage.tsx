@@ -543,22 +543,6 @@ const SearchPage = () => {
                   </div>
                 </div>
 
-                {/* Ad banner placeholder */}
-                <div className="rounded-xl overflow-hidden border border-border bg-accent/30 p-5 text-center">
-                  <p className="text-primary font-bold text-lg mb-1">XanhStay</p>
-                  <p className="text-sm text-muted-foreground mb-3">Thanh toán càng dài, chi phí càng giảm</p>
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="text-center">
-                      <p className="text-primary font-bold text-xl">3%</p>
-                      <p className="text-xs text-muted-foreground">6 tháng</p>
-                    </div>
-                    <span className="w-px h-8 bg-border" />
-                    <div className="text-center">
-                      <p className="text-primary font-bold text-xl">5%</p>
-                      <p className="text-xs text-muted-foreground">12 tháng</p>
-                    </div>
-                  </div>
-                </div>
               </div>
             </aside>
 
