@@ -170,9 +170,11 @@ const MapSearchPage = () => {
     if (provinceId) {
       const province = provinces.find((p) => p.code === provinceId);
       if (province) parts.push(province.fullName);
+    } else if (selectedProvinceName) {
+      parts.push(selectedProvinceName);
     }
     return parts.join(" ");
-  }, [provinceId, wardId, provinces, wards]);
+  }, [provinceId, wardId, provinces, wards, selectedProvinceName]);
 
   // Handle autocomplete selection: pan map + update search overlay
   const handleLocationSelect = useCallback(

@@ -116,9 +116,11 @@ const SearchPage = () => {
     if (provinceId) {
       const province = provinces.find((p) => p.code === provinceId);
       if (province) parts.push(province.fullName);
+    } else if (selectedProvinceName) {
+      parts.push(selectedProvinceName);
     }
     return parts.join(" ");
-  }, [provinceId, wardId, provinces, wards]);
+  }, [provinceId, wardId, provinces, wards, selectedProvinceName]);
 
   const handleLocationSelect = useCallback((_result: any, bounds: GeoBounds) => {
     setGeoBounds(bounds);
