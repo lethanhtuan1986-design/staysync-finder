@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { httpRequest } from "@/services/index";
-import provinceService, { ProvinceItem } from "@/services/province.service";
+import provinceService, { ProvinceItem, WardItem, formatLocationLabel } from "@/services/province.service";
 import apartmentTypeService, { ApartmentTypeItem } from "@/services/apartmentType.service";
 import { filterPrices, filterApartmentSizes } from "@/lib/filter-options";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -73,9 +73,7 @@ export const HeroSearch = () => {
       }),
   });
 
-  const { data: wards = [], isLoading: wardsLoading } = useQuery<
-    { code: string; fullName: string; fullNameEn: string }[]
-  >({
+  const { data: wards = [], isLoading: wardsLoading } = useQuery<WardItem[]>({
     queryKey: ["dropdown-ward", provinceId],
     queryFn: () =>
       httpRequest({
@@ -140,7 +138,7 @@ export const HeroSearch = () => {
             onSelect={() => handleSearch()}
             placeholder={t("search.keywordPlaceholder")}
             inputClassName="h-11"
-            enrichSuffix={(provinceName || "").replace(/\s*\([^)]*\)\s*$/, "").trim()}
+            enrichSuffix={provinceName || ""}
             biasLat={bias?.lat}
             biasLng={bias?.lng}
             biasRadiusKm={bias?.radiusKm}
@@ -232,7 +230,7 @@ export const HeroSearch = () => {
                     <SelectItem value="__all__">{t("hero.ward")}</SelectItem>
                     {wards.map((w) => (
                       <SelectItem key={w.code} value={w.code}>
-                        {w.fullName}
+                        {formatLocationLabel(w)}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -10,7 +10,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { httpRequest } from "@/services/index";
-import provinceService, { ProvinceItem } from "@/services/province.service";
+import provinceService, { ProvinceItem, formatLocationLabel } from "@/services/province.service";
 import { useSelectedProvince } from "@/hooks/useSelectedProvince";
 import { DEFAULT_PROVINCE_CODE, DEFAULT_PROVINCE_NAME } from "@/lib/province-geo";
 import { cn } from "@/lib/utils";
@@ -198,7 +198,7 @@ export const ProvincePickerModal = ({
                     )}
                   >
                     <MapPin size={14} className="shrink-0 text-muted-foreground" />
-                    <span className="truncate">{p.fullName}</span>
+                    <span className="truncate">{formatLocationLabel(p)}</span>
                     {active && <Check size={14} className="ml-auto shrink-0" />}
                   </button>
                 );

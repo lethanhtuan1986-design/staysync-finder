@@ -11,7 +11,7 @@ import advertisementService, {
   GetAdvertisementsForMapRequest,
   AdvertisementData,
 } from "@/services/advertisement.service";
-import provinceService, { ProvinceItem } from "@/services/province.service";
+import provinceService, { ProvinceItem, WardItem, formatLocationLabel } from "@/services/province.service";
 import apartmentTypeService, {
   ApartmentTypeItem,
 } from "@/services/apartmentType.service";
@@ -127,9 +127,7 @@ const MapSearchPage = () => {
       }),
   });
 
-  const { data: wards = [], isLoading: wardsLoading } = useQuery<
-    { code: string; fullName: string; fullNameEn: string }[]
-  >({
+  const { data: wards = [], isLoading: wardsLoading } = useQuery<WardItem[]>({
     queryKey: ["dropdown-ward", provinceId],
     queryFn: () =>
       httpRequest({
@@ -337,7 +335,7 @@ const MapSearchPage = () => {
             <SelectItem value="__all__">{t("search.all")}</SelectItem>
             {wards.map((w) => (
               <SelectItem key={w.code} value={w.code}>
-                {w.fullName}
+                {formatLocationLabel(w)}
               </SelectItem>
             ))}
           </SelectContent>

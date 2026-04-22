@@ -8,7 +8,7 @@ import { Footer } from "@/components/Footer";
 import { FloatingCallButton } from "@/components/FloatingCallButton";
 import { filterPrices, filterApartmentSizes } from "@/lib/filter-options";
 import advertisementService, { GetListAdvertisementRequest, AdvertisementData } from "@/services/advertisement.service";
-import provinceService, { ProvinceItem } from "@/services/province.service";
+import provinceService, { ProvinceItem, WardItem, formatLocationLabel } from "@/services/province.service";
 import apartmentTypeService, { ApartmentTypeItem } from "@/services/apartmentType.service";
 import { httpRequest } from "@/services/index";
 import { useTranslation } from "react-i18next";
@@ -76,9 +76,7 @@ const SearchPage = () => {
       }),
   });
 
-  const { data: wards = [], isLoading: wardsLoading } = useQuery<
-    { code: string; fullName: string; fullNameEn: string }[]
-  >({
+  const { data: wards = [], isLoading: wardsLoading } = useQuery<WardItem[]>({
     queryKey: ["dropdown-ward", provinceId],
     queryFn: () =>
       httpRequest({
@@ -107,18 +105,15 @@ const SearchPage = () => {
       }),
   });
 
-  // Build enriched suffix for autocomplete (province/ward names)
-  // - Ưu tiên selectedProvinceName (sync từ localStorage) để khớp với HeroSearch.
-  // - Strip phần "(...)" ở cuối (vd: "Thành phố Hà Nội (7)") để không lẫn vào query Nominatim.
+  // Build enriched suffix for autocomplete — chỉ dùng fullName thuần, không kèm aptCount.
   const enrichSuffix = useMemo(() => {
-    const cleanLabel = (s: string) => s.replace(/\s*\([^)]*\)\s*$/, "").trim();
     const parts: string[] = [];
     if (wardId) {
       const ward = wards.find((w) => w.code === wardId);
-      if (ward) parts.push(cleanLabel(ward.fullName));
+      if (ward) parts.push(ward.fullName);
     }
     const provinceFromList = provinceId ? provinces.find((p) => p.code === provinceId)?.fullName : "";
-    const provinceLabel = cleanLabel(provinceFromList || selectedProvinceName || "");
+    const provinceLabel = provinceFromList || selectedProvinceName || "";
     if (provinceLabel) parts.push(provinceLabel);
     return parts.join(" ");
   }, [provinceId, wardId, provinces, wards, selectedProvinceName]);
@@ -430,7 +425,7 @@ const SearchPage = () => {
                   <SelectItem value="__all__">{t("search.all")}</SelectItem>
                   {wards.map((w) => (
                     <SelectItem key={w.code} value={w.code}>
-                      {w.fullName}
+                      {formatLocationLabel(w)}
                     </SelectItem>
                   ))}
                 </SelectContent>
