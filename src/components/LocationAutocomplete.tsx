@@ -23,6 +23,10 @@ interface LocationAutocompleteProps {
   placeholder?: string;
   className?: string;
   inputClassName?: string;
+  /** Bias Google Places results around this location (km radius). Optional. */
+  biasLat?: number;
+  biasLng?: number;
+  biasRadiusKm?: number;
 }
 
 interface DropdownItem {
@@ -44,6 +48,9 @@ export const LocationAutocomplete = ({
   placeholder = "Tìm kiếm địa điểm...",
   className,
   inputClassName,
+  biasLat,
+  biasLng,
+  biasRadiusKm,
 }: LocationAutocompleteProps) => {
   const google = useGooglePlaces();
   const [items, setItems] = useState<DropdownItem[]>([]);
@@ -87,7 +94,15 @@ export const LocationAutocomplete = ({
 
     if (useGoogle) {
       // Hook tự debounce 500ms
-      google.search(value);
+      if (
+        typeof biasLat === "number" &&
+        typeof biasLng === "number" &&
+        typeof biasRadiusKm === "number"
+      ) {
+        google.search(value, { lat: biasLat, lng: biasLng, radiusKm: biasRadiusKm });
+      } else {
+        google.search(value);
+      }
       return;
     }
 
@@ -115,7 +130,7 @@ export const LocationAutocomplete = ({
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, enrichSuffix, useGoogle]);
+  }, [value, enrichSuffix, useGoogle, biasLat, biasLng, biasRadiusKm]);
 
   // ---- Close on click outside
   useEffect(() => {

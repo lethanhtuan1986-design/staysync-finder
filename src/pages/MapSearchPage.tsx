@@ -36,6 +36,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSelectedProvince } from "@/hooks/useSelectedProvince";
+import { getProvinceBias } from "@/lib/province-geo";
 
 const parsePoint = (point: string): [number, number] | null => {
   try {
@@ -54,6 +56,8 @@ const MapSearchPage = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const isMobile = useIsMobile();
+  const { provinceCode: selectedProvinceCode, provinceName: selectedProvinceName } = useSelectedProvince();
+  const bias = getProvinceBias(selectedProvinceCode);
 
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -166,9 +170,11 @@ const MapSearchPage = () => {
     if (provinceId) {
       const province = provinces.find((p) => p.code === provinceId);
       if (province) parts.push(province.fullName);
+    } else if (selectedProvinceName) {
+      parts.push(selectedProvinceName);
     }
     return parts.join(" ");
-  }, [provinceId, wardId, provinces, wards]);
+  }, [provinceId, wardId, provinces, wards, selectedProvinceName]);
 
   // Handle autocomplete selection: pan map + update search overlay
   const handleLocationSelect = useCallback(
@@ -309,6 +315,9 @@ const MapSearchPage = () => {
           enrichSuffix={enrichSuffix}
           radiusKm={radiusKm}
           placeholder={t("search.keywordPlaceholder")}
+          biasLat={bias?.lat}
+          biasLng={bias?.lng}
+          biasRadiusKm={bias?.radiusKm}
         />
       </div>
 

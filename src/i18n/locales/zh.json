@@ -160,5 +160,18 @@
     "title": "404",
     "message": "页面未找到",
     "backHome": "返回首页"
+  },
+  "provincePicker": {
+    "title": "您想在哪里找房？",
+    "desc": "选择省/市以获得更精准的推荐。",
+    "searchPlaceholder": "搜索省/市...",
+    "popular": "热门",
+    "all": "所有省/市",
+    "empty": "未找到",
+    "confirm": "确认",
+    "skip": "跳过"
+  },
+  "navbar": {
+    "changeProvince": "更换省/市"
   }
 }

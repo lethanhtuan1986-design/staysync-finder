@@ -21,6 +21,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MiniMapPreview } from "@/components/MiniMapPreview";
 import { GeoBounds, RADIUS_OPTIONS, DEFAULT_RADIUS_KM } from "@/lib/geocoding";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useSelectedProvince } from "@/hooks/useSelectedProvince";
+import { getProvinceBias } from "@/lib/province-geo";
 
 const PAGE_SIZE = 20;
 
@@ -36,6 +38,8 @@ const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { provinceCode: selectedProvinceCode, provinceName: selectedProvinceName } = useSelectedProvince();
+  const bias = getProvinceBias(selectedProvinceCode);
 
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -112,9 +116,11 @@ const SearchPage = () => {
     if (provinceId) {
       const province = provinces.find((p) => p.code === provinceId);
       if (province) parts.push(province.fullName);
+    } else if (selectedProvinceName) {
+      parts.push(selectedProvinceName);
     }
     return parts.join(" ");
-  }, [provinceId, wardId, provinces, wards]);
+  }, [provinceId, wardId, provinces, wards, selectedProvinceName]);
 
   const handleLocationSelect = useCallback((_result: any, bounds: GeoBounds) => {
     setGeoBounds(bounds);
@@ -263,6 +269,9 @@ const SearchPage = () => {
               placeholder={t("search.keywordPlaceholder")}
               className="flex-1 min-w-[200px] max-w-md"
               inputClassName="h-11"
+              biasLat={bias?.lat}
+              biasLng={bias?.lng}
+              biasRadiusKm={bias?.radiusKm}
             />
 
             {/* Sort */}
@@ -331,6 +340,9 @@ const SearchPage = () => {
               placeholder={t("search.keywordPlaceholder")}
               className="w-full"
               inputClassName="h-12"
+              biasLat={bias?.lat}
+              biasLng={bias?.lng}
+              biasRadiusKm={bias?.radiusKm}
             />
 
             {/* Row 2: Sort + Map + Advanced filter - grid 3 cols */}

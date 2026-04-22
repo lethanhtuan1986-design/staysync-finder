@@ -54,7 +54,10 @@ export function useGooglePlaces() {
   }, [ensureSessionToken]);
 
   const search = useCallback(
-    (input: string) => {
+    (
+      input: string,
+      opts?: { lat: number; lng: number; radiusKm: number },
+    ) => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       const trimmed = input.trim();
       if (!trimmed) {
@@ -69,15 +72,19 @@ export function useGooglePlaces() {
 
       debounceRef.current = setTimeout(() => {
         const token = ensureSessionToken();
+        const request: google.maps.places.AutocompletionRequest = {
+          input: trimmed,
+          componentRestrictions: { country: "vn" },
+          language: "vi",
+          sessionToken: token ?? undefined,
+        };
+        if (opts && isFinite(opts.lat) && isFinite(opts.lng) && opts.radiusKm > 0) {
+          request.location = new window.google.maps.LatLng(opts.lat, opts.lng);
+          request.radius = opts.radiusKm * 1000;
+        }
         autocompleteServiceRef.current!.getPlacePredictions(
-          {
-            input: trimmed,
-            componentRestrictions: { country: "vn" },
-            language: "vi",
-            sessionToken: token ?? undefined,
-          },
+          request,
           (results, status) => {
-            // Bỏ qua nếu đã có request mới hơn
             if (reqId !== lastReqIdRef.current) return;
             setLoading(false);
             if (

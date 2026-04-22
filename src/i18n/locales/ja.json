@@ -160,5 +160,18 @@
     "title": "404",
     "message": "ページが見つかりません",
     "backHome": "ホームに戻る"
+  },
+  "provincePicker": {
+    "title": "どこで家を探しますか？",
+    "desc": "より正確な提案のために地域を選択してください。",
+    "searchPlaceholder": "地域を検索...",
+    "popular": "人気",
+    "all": "全エリア",
+    "empty": "見つかりません",
+    "confirm": "確定",
+    "skip": "スキップ"
+  },
+  "navbar": {
+    "changeProvince": "地域を変更"
   }
 }
