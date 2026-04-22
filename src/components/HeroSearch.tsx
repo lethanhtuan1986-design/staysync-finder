@@ -145,7 +145,7 @@ export const HeroSearch = () => {
             onSelect={() => handleSearch()}
             placeholder={t("search.keywordPlaceholder")}
             inputClassName="h-11"
-            enrichSuffix={provinceName || ""}
+            enrichSuffix={provinceEnrich}
             biasLat={bias?.lat}
             biasLng={bias?.lng}
             biasRadiusKm={bias?.radiusKm}
