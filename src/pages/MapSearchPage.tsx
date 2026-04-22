@@ -73,9 +73,8 @@ const MapSearchPage = () => {
   const [debouncedBounds, setDebouncedBounds] = useState(bounds);
 
   // Filter states from URL
-  const [provinceId, setProvinceId] = useState(
-    searchParams.get("provinceId") || "",
-  );
+  // Province driven by global selected province
+  const provinceId = selectedProvinceCode || "";
   const [wardId, setWardId] = useState(searchParams.get("wardId") || "");
   const [apartmentTypeUuid, setApartmentTypeUuid] = useState(
     searchParams.get("apartmentTypeUuid") || "",
