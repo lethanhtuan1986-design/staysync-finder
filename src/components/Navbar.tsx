@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, Heart, Home, Building2, Download, MapPin } from 'lucide-react';
+import { Search, Heart, Home, Building2, Download, MapPin, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { ThemeToggle } from './ThemeToggle';
@@ -13,6 +13,8 @@ import {
 } from '@/components/ui/dialog';
 import { AppDownloadButtons } from './AppDownloadButtons';
 import { detectPlatform, APP_STORE_URL, GOOGLE_PLAY_URL } from '@/lib/app-links';
+import { useSelectedProvince } from '@/hooks/useSelectedProvince';
+import { ProvincePickerModal } from './ProvincePickerModal';
 
 export const Navbar = () => {
   const location = useLocation();
