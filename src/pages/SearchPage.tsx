@@ -108,16 +108,17 @@ const SearchPage = () => {
   });
 
   // Build enriched suffix for autocomplete (province/ward names)
-  // Ưu tiên selectedProvinceName (đọc sync từ localStorage) để khớp với HeroSearch,
-  // tránh trường hợp provinces query chưa resolve khi có sẵn keyword trong URL.
+  // - Ưu tiên selectedProvinceName (sync từ localStorage) để khớp với HeroSearch.
+  // - Strip phần "(...)" ở cuối (vd: "Thành phố Hà Nội (7)") để không lẫn vào query Nominatim.
   const enrichSuffix = useMemo(() => {
+    const cleanLabel = (s: string) => s.replace(/\s*\([^)]*\)\s*$/, "").trim();
     const parts: string[] = [];
     if (wardId) {
       const ward = wards.find((w) => w.code === wardId);
-      if (ward) parts.push(ward.fullName);
+      if (ward) parts.push(cleanLabel(ward.fullName));
     }
     const provinceFromList = provinceId ? provinces.find((p) => p.code === provinceId)?.fullName : "";
-    const provinceLabel = provinceFromList || selectedProvinceName || "";
+    const provinceLabel = cleanLabel(provinceFromList || selectedProvinceName || "");
     if (provinceLabel) parts.push(provinceLabel);
     return parts.join(" ");
   }, [provinceId, wardId, provinces, wards, selectedProvinceName]);
