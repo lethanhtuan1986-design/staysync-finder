@@ -23,6 +23,10 @@ interface LocationAutocompleteProps {
   placeholder?: string;
   className?: string;
   inputClassName?: string;
+  /** Bias Google Places results around this location (km radius). Optional. */
+  biasLat?: number;
+  biasLng?: number;
+  biasRadiusKm?: number;
 }
 
 interface DropdownItem {
