@@ -44,7 +44,8 @@ const SearchPage = () => {
   const listRef = useRef<HTMLDivElement>(null);
 
   // Filter states from URL
-  const [provinceId, setProvinceId] = useState(searchParams.get("provinceId") || "");
+  // Province is driven by global selected province (no in-page picker)
+  const provinceId = selectedProvinceCode || "";
   const [wardId, setWardId] = useState(searchParams.get("wardId") || "");
   const [apartmentTypeUuid, setApartmentTypeUuid] = useState(searchParams.get("apartmentTypeUuid") || "");
   const [priceFrom, setPriceFrom] = useState(searchParams.get("priceFrom") || "");
@@ -245,7 +246,7 @@ const SearchPage = () => {
     navigate(`/search/map?${params.toString()}`);
   };
 
-  const activeFilterCount = [apartmentTypeUuid, selectedPriceUuid, selectedSizeUuid, provinceId, wardId].filter(
+  const activeFilterCount = [apartmentTypeUuid, selectedPriceUuid, selectedSizeUuid, wardId].filter(
     Boolean,
   ).length;
 
@@ -411,29 +412,6 @@ const SearchPage = () => {
             <DialogTitle>{t("hero.advancedFilters")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{t("search.area")}</label>
-              <Select
-                value={provinceId || "__all__"}
-                onValueChange={(val) => {
-                  setProvinceId(val === "__all__" ? "" : val);
-                  setWardId("");
-                }}
-              >
-                <SelectTrigger className="w-full h-11">
-                  <SelectValue placeholder={t("search.all")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">{t("search.all")}</SelectItem>
-                  {provinces.map((p) => (
-                    <SelectItem key={p.code} value={p.code}>
-                      {p.fullName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-foreground">{t("hero.ward")}</label>
               <Select
