@@ -184,6 +184,8 @@ export const Navbar = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ProvincePickerModal open={provincePickerOpen} onOpenChange={setProvincePickerOpen} />
     </nav>
   );
 };
