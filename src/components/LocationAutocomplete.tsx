@@ -130,7 +130,7 @@ export const LocationAutocomplete = ({
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, enrichSuffix, useGoogle]);
+  }, [value, enrichSuffix, useGoogle, biasLat, biasLng, biasRadiusKm]);
 
   // ---- Close on click outside
   useEffect(() => {
