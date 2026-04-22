@@ -38,6 +38,8 @@ const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { provinceCode: selectedProvinceCode, provinceName: selectedProvinceName } = useSelectedProvince();
+  const bias = getProvinceBias(selectedProvinceCode);
 
   const listRef = useRef<HTMLDivElement>(null);
 

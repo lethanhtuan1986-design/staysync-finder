@@ -56,6 +56,8 @@ const MapSearchPage = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const isMobile = useIsMobile();
+  const { provinceCode: selectedProvinceCode, provinceName: selectedProvinceName } = useSelectedProvince();
+  const bias = getProvinceBias(selectedProvinceCode);
 
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [filterOpen, setFilterOpen] = useState(false);
