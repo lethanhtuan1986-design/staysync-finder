@@ -12,6 +12,8 @@ import apartmentTypeService, { ApartmentTypeItem } from "@/services/apartmentTyp
 import { filterPrices, filterApartmentSizes } from "@/lib/filter-options";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSelectedProvince } from "@/hooks/useSelectedProvince";
+import { getProvinceBias } from "@/lib/province-geo";
 
 import heroBanner1 from "@/assets/hero-banner-1.jpg";
 import heroBanner2 from "@/assets/hero-banner-2.jpg";
@@ -23,6 +25,8 @@ export const HeroSearch = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const isMobile = useIsMobile();
+  const { provinceCode, provinceName } = useSelectedProvince();
+  const bias = getProvinceBias(provinceCode);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [provinceId, setProvinceId] = useState("");
   const [wardId, setWardId] = useState("");
@@ -158,6 +162,10 @@ export const HeroSearch = () => {
             onSelect={() => handleSearch()}
             placeholder={t("search.keywordPlaceholder")}
             inputClassName="h-11"
+            enrichSuffix={provinceName || ""}
+            biasLat={bias?.lat}
+            biasLng={bias?.lng}
+            biasRadiusKm={bias?.radiusKm}
           />
         </div>
 

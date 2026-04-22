@@ -21,6 +21,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MiniMapPreview } from "@/components/MiniMapPreview";
 import { GeoBounds, RADIUS_OPTIONS, DEFAULT_RADIUS_KM } from "@/lib/geocoding";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useSelectedProvince } from "@/hooks/useSelectedProvince";
+import { getProvinceBias } from "@/lib/province-geo";
 
 const PAGE_SIZE = 20;
 
