@@ -17,6 +17,7 @@ export interface ProvinceItem {
   code: string;
   fullName: string;
   fullNameEn: string;
+  aptCount?: number;
 }
 
 export interface WardItem {
@@ -24,7 +25,19 @@ export interface WardItem {
   fullName: string;
   fullNameEn: string;
   provinceCode: string;
+  aptCount?: number;
 }
+
+/**
+ * Format tên hiển thị cho province/ward trong dropdown:
+ * - Có aptCount > 0  → "Tên (count)"
+ * - Không/0          → "Tên"
+ * Khi dùng cho query tìm kiếm (Nominatim, etc.) → chỉ dùng `fullName`.
+ */
+export const formatLocationLabel = (item: { fullName: string; aptCount?: number }) => {
+  const count = item.aptCount ?? 0;
+  return count > 0 ? `${item.fullName} (${count})` : item.fullName;
+};
 
 const provinceService = {
   listProvince: (request: ListProvinceRequest) => {
