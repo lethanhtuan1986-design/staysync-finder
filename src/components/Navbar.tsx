@@ -19,8 +19,10 @@ import { ProvincePickerModal } from './ProvincePickerModal';
 export const Navbar = () => {
   const location = useLocation();
   const { t } = useTranslation();
+  const { provinceName } = useSelectedProvince();
   const [scrolled, setScrolled] = useState(false);
   const [downloadOpen, setDownloadOpen] = useState(false);
+  const [provincePickerOpen, setProvincePickerOpen] = useState(false);
   const isHome = location.pathname === '/';
 
   const handleDownloadClick = (e: React.MouseEvent) => {
