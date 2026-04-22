@@ -73,9 +73,8 @@ const MapSearchPage = () => {
   const [debouncedBounds, setDebouncedBounds] = useState(bounds);
 
   // Filter states from URL
-  const [provinceId, setProvinceId] = useState(
-    searchParams.get("provinceId") || "",
-  );
+  // Province driven by global selected province
+  const provinceId = selectedProvinceCode || "";
   const [wardId, setWardId] = useState(searchParams.get("wardId") || "");
   const [apartmentTypeUuid, setApartmentTypeUuid] = useState(
     searchParams.get("apartmentTypeUuid") || "",
@@ -319,32 +318,6 @@ const MapSearchPage = () => {
           biasLng={bias?.lng}
           biasRadiusKm={bias?.radiusKm}
         />
-      </div>
-
-      {/* Province */}
-      <div>
-        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
-          {t("search.area")}
-        </label>
-        <Select
-          value={provinceId || "__all__"}
-          onValueChange={(val) => {
-            setProvinceId(val === "__all__" ? "" : val);
-            setWardId("");
-          }}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder={t("search.all")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__all__">{t("search.all")}</SelectItem>
-            {provinces.map((p) => (
-              <SelectItem key={p.code} value={p.code}>
-                {p.fullName}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Ward */}

@@ -28,7 +28,8 @@ export const HeroSearch = () => {
   const { provinceCode, provinceName } = useSelectedProvince();
   const bias = getProvinceBias(provinceCode);
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [provinceId, setProvinceId] = useState("");
+  // provinceId is driven by global selected province (no more in-search dropdown)
+  const provinceId = provinceCode || "";
   const [wardId, setWardId] = useState("");
   const [priceUuid, setPriceUuid] = useState("");
   const [sizeUuid, setSizeUuid] = useState("");
@@ -125,35 +126,12 @@ export const HeroSearch = () => {
     navigate(`/search?${params.toString()}`);
   };
 
-  const advancedFilterCount = [wardId, priceUuid, sizeUuid, apartmentTypeUuid, ...(isMobile && provinceId ? [provinceId] : [])].filter(Boolean).length;
+  const advancedFilterCount = [wardId, priceUuid, sizeUuid, apartmentTypeUuid].filter(Boolean).length;
 
   const searchPanel = (
     <div className="bg-card/95 backdrop-blur-md rounded-2xl shadow-soft border border-border p-3 sm:p-4">
       {/* Main filters - single row */}
       <div className="flex flex-row items-stretch gap-2">
-        {/* Province select - desktop only */}
-        {!isMobile && (
-          <Select
-            value={provinceId}
-            onValueChange={(val) => {
-              setProvinceId(val === "__all__" ? "" : val);
-              setWardId("");
-            }}
-          >
-            <SelectTrigger className="h-11 rounded-xl bg-secondary/50 border-border w-auto md:min-w-[160px]">
-              <SelectValue placeholder={t("hero.area")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__all__">{t("hero.area")}</SelectItem>
-              {provinces.map((p) => (
-                <SelectItem key={p.code} value={p.code}>
-                  {p.fullName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-
         {/* Search input with autocomplete */}
         <div className="flex-1 min-w-0">
           <LocationAutocomplete
@@ -223,29 +201,6 @@ export const HeroSearch = () => {
                 </button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
-                {/* Province - mobile only (moved from main row) */}
-                {isMobile && (
-                  <Select
-                    value={provinceId}
-                    onValueChange={(val) => {
-                      setProvinceId(val === "__all__" ? "" : val);
-                      setWardId("");
-                    }}
-                  >
-                    <SelectTrigger className="search-field-select-trigger">
-                      <SelectValue placeholder={t("hero.area")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__all__">{t("hero.area")}</SelectItem>
-                      {provinces.map((p) => (
-                        <SelectItem key={p.code} value={p.code}>
-                          {p.fullName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-
                 {/* Price range */}
                 <Select value={priceUuid} onValueChange={(val) => setPriceUuid(val === "__all__" ? "" : val)}>
                   <SelectTrigger className="search-field-select-trigger">
