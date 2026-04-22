@@ -36,6 +36,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSelectedProvince } from "@/hooks/useSelectedProvince";
+import { getProvinceBias } from "@/lib/province-geo";
 
 const parsePoint = (point: string): [number, number] | null => {
   try {
@@ -309,6 +311,9 @@ const MapSearchPage = () => {
           enrichSuffix={enrichSuffix}
           radiusKm={radiusKm}
           placeholder={t("search.keywordPlaceholder")}
+          biasLat={bias?.lat}
+          biasLng={bias?.lng}
+          biasRadiusKm={bias?.radiusKm}
         />
       </div>
 

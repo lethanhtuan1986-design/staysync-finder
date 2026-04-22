@@ -265,6 +265,9 @@ const SearchPage = () => {
               placeholder={t("search.keywordPlaceholder")}
               className="flex-1 min-w-[200px] max-w-md"
               inputClassName="h-11"
+              biasLat={bias?.lat}
+              biasLng={bias?.lng}
+              biasRadiusKm={bias?.radiusKm}
             />
 
             {/* Sort */}
@@ -333,6 +336,9 @@ const SearchPage = () => {
               placeholder={t("search.keywordPlaceholder")}
               className="w-full"
               inputClassName="h-12"
+              biasLat={bias?.lat}
+              biasLng={bias?.lng}
+              biasRadiusKm={bias?.radiusKm}
             />
 
             {/* Row 2: Sort + Map + Advanced filter - grid 3 cols */}
