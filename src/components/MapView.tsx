@@ -279,12 +279,12 @@ export const MapView = ({ locations = [], hoveredId, loading = false, onMarkerCl
         iconAnchor: [9, 9],
       });
       const marker = L.marker([flyTo.lat, flyTo.lng], { icon: pinIcon, zIndexOffset: 2000 });
-      marker.bindPopup(
-        `<div style="font-size:13px;font-weight:500;color:hsl(var(--foreground));max-width:240px;">${flyTo.label}</div>`,
-        { closeButton: false, className: "leaflet-popup-premium" },
-      );
+      marker.bindTooltip(flyTo.label, {
+        direction: "top",
+        offset: [0, -10],
+        className: "map-tooltip",
+      });
       marker.addTo(map);
-      marker.openPopup();
       flyToMarkerRef.current = marker;
     }
   }, [flyTo]);
