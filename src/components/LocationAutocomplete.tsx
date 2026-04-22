@@ -48,6 +48,9 @@ export const LocationAutocomplete = ({
   placeholder = "Tìm kiếm địa điểm...",
   className,
   inputClassName,
+  biasLat,
+  biasLng,
+  biasRadiusKm,
 }: LocationAutocompleteProps) => {
   const google = useGooglePlaces();
   const [items, setItems] = useState<DropdownItem[]>([]);
@@ -91,7 +94,15 @@ export const LocationAutocomplete = ({
 
     if (useGoogle) {
       // Hook tự debounce 500ms
-      google.search(value);
+      if (
+        typeof biasLat === "number" &&
+        typeof biasLng === "number" &&
+        typeof biasRadiusKm === "number"
+      ) {
+        google.search(value, { lat: biasLat, lng: biasLng, radiusKm: biasRadiusKm });
+      } else {
+        google.search(value);
+      }
       return;
     }
 
