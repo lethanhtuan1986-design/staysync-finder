@@ -102,14 +102,16 @@ export const ProvincePickerModal = ({
       }}
     >
       <DialogContent
-        className="sm:max-w-md p-0 gap-0 overflow-hidden rounded-2xl"
+        className={cn(
+          "sm:max-w-md p-0 gap-0 overflow-hidden rounded-2xl",
+          forced && "[&>button.absolute]:hidden",
+        )}
         onEscapeKeyDown={(e) => {
           if (forced) e.preventDefault();
         }}
         onPointerDownOutside={(e) => {
           if (forced) e.preventDefault();
         }}
-        hideClose={forced}
       >
         <DialogHeader className="px-6 pt-6 pb-2 text-left">
           <DialogTitle className="text-xl font-semibold">
