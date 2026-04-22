@@ -102,6 +102,22 @@ export const Navbar = () => {
 
           {/* Desktop right actions */}
           <div className="hidden md:flex items-center gap-2">
+            {provinceName && (
+              <button
+                type="button"
+                onClick={() => setProvincePickerOpen(true)}
+                title={t('navbar.changeProvince', 'Đổi tỉnh/thành phố')}
+                className={`flex items-center gap-1.5 px-3 h-9 rounded-full text-sm font-medium transition-colors ${
+                  isTransparent
+                    ? 'bg-white/15 text-white hover:bg-white/25 border border-white/20'
+                    : 'bg-secondary text-foreground hover:bg-secondary/80 border border-border'
+                }`}
+              >
+                <MapPin size={14} />
+                <span className="max-w-[140px] truncate">{provinceName}</span>
+                <ChevronDown size={14} className="opacity-70" />
+              </button>
+            )}
             <LanguageSwitcher />
             <ThemeToggle />
             <button
@@ -120,6 +136,21 @@ export const Navbar = () => {
 
           {/* Mobile header right */}
           <div className="md:hidden flex items-center gap-1">
+            {provinceName && (
+              <button
+                type="button"
+                onClick={() => setProvincePickerOpen(true)}
+                aria-label={t('navbar.changeProvince', 'Đổi tỉnh/thành phố')}
+                className={`flex items-center gap-1 px-2 h-9 rounded-full text-xs font-medium transition-colors ${
+                  isTransparent
+                    ? 'bg-white/15 text-white border border-white/20'
+                    : 'bg-secondary text-foreground border border-border'
+                }`}
+              >
+                <MapPin size={12} />
+                <span className="max-w-[80px] truncate">{provinceName}</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={handleDownloadClick}
