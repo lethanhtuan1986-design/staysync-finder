@@ -5,25 +5,20 @@ import {
   searchNominatim,
   NominatimResult,
   nominatimResultToBounds,
-  latLngToBounds,
   GeoBounds,
   DEFAULT_RADIUS_KM,
 } from "@/lib/geocoding";
-import { useGooglePlaces, PlacePrediction } from "@/hooks/useGooglePlaces";
 
 interface LocationAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
-  onSelect: (
-    result: NominatimResult | PlacePrediction,
-    bounds: GeoBounds,
-  ) => void;
+  onSelect: (result: NominatimResult, bounds: GeoBounds) => void;
   enrichSuffix?: string;
   radiusKm?: number;
   placeholder?: string;
   className?: string;
   inputClassName?: string;
-  /** Bias Google Places results around this location (km radius). Optional. */
+  /** Kept for backward compatibility — no longer used (Google Places removed). */
   biasLat?: number;
   biasLng?: number;
   biasRadiusKm?: number;
@@ -33,8 +28,7 @@ interface DropdownItem {
   id: string;
   main: string;
   secondary: string;
-  source: "google" | "nominatim";
-  raw: PlacePrediction | NominatimResult;
+  raw: NominatimResult;
 }
 
 const NOMINATIM_DEBOUNCE_MS = 500;
@@ -48,67 +42,25 @@ export const LocationAutocomplete = ({
   placeholder = "Tìm kiếm địa điểm...",
   className,
   inputClassName,
-  biasLat,
-  biasLng,
-  biasRadiusKm,
 }: LocationAutocompleteProps) => {
-  const google = useGooglePlaces();
   const [items, setItems] = useState<DropdownItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [nominatimLoading, setNominatimLoading] = useState(false);
-  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
-  const lastQueryRef = useRef<string>("");
 
-  const useGoogle = google.ready;
-  const loading = useGoogle ? google.loading : nominatimLoading;
-
-  // ---- Google: map predictions → items
   useEffect(() => {
-    if (!useGoogle) return;
-    const mapped: DropdownItem[] = google.predictions.map((p) => ({
-      id: p.place_id,
-      main: p.main_text,
-      secondary: p.secondary_text,
-      source: "google",
-      raw: p,
-    }));
-    setItems(mapped);
-    if (mapped.length > 0 && lastQueryRef.current.length > 0) setIsOpen(true);
-  }, [google.predictions, useGoogle]);
-
-  // ---- Trigger search (Google or Nominatim fallback)
-  useEffect(() => {
-    lastQueryRef.current = value;
-
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     if (!value.trim()) {
       setItems([]);
       setIsOpen(false);
-      setNominatimLoading(false);
-      if (useGoogle) google.clear();
+      setLoading(false);
       return;
     }
 
-    if (useGoogle) {
-      // Hook tự debounce 500ms
-      if (
-        typeof biasLat === "number" &&
-        typeof biasLng === "number" &&
-        typeof biasRadiusKm === "number"
-      ) {
-        google.search(value, { lat: biasLat, lng: biasLng, radiusKm: biasRadiusKm });
-      } else {
-        google.search(value);
-      }
-      return;
-    }
-
-    // Nominatim fallback
     debounceRef.current = setTimeout(async () => {
-      setNominatimLoading(true);
+      setLoading(true);
       const query = enrichSuffix ? `${value} ${enrichSuffix}`.trim() : value;
       const data = await searchNominatim(query, 5);
       const mapped: DropdownItem[] = data.map((r, idx) => {
@@ -117,22 +69,19 @@ export const LocationAutocomplete = ({
           id: `${r.lat}-${r.lon}-${idx}`,
           main: parts[0] || r.display_name,
           secondary: parts.slice(1).join(", "),
-          source: "nominatim",
           raw: r,
         };
       });
       setItems(mapped);
       setIsOpen(mapped.length > 0);
-      setNominatimLoading(false);
+      setLoading(false);
     }, NOMINATIM_DEBOUNCE_MS);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, enrichSuffix, useGoogle, biasLat, biasLng, biasRadiusKm]);
+  }, [value, enrichSuffix]);
 
-  // ---- Close on click outside
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (
@@ -147,36 +96,21 @@ export const LocationAutocomplete = ({
   }, []);
 
   const handleSelect = useCallback(
-    async (item: DropdownItem) => {
+    (item: DropdownItem) => {
       onChange(item.main);
       setIsOpen(false);
-
-      if (item.source === "google") {
-        const pred = item.raw as PlacePrediction;
-        setDetailsLoading(true);
-        const details = await google.getDetails(pred.place_id);
-        setDetailsLoading(false);
-        if (!details) return;
-        const bounds = latLngToBounds(details.lat, details.lng, radiusKm);
-        onSelect(pred, bounds);
-      } else {
-        const r = item.raw as NominatimResult;
-        const bounds = nominatimResultToBounds(r, radiusKm);
-        onSelect(r, bounds);
-      }
+      const bounds = nominatimResultToBounds(item.raw, radiusKm);
+      onSelect(item.raw, bounds);
       setItems([]);
     },
-    [google, onChange, onSelect, radiusKm],
+    [onChange, onSelect, radiusKm],
   );
 
   const handleClear = () => {
     onChange("");
     setItems([]);
     setIsOpen(false);
-    if (useGoogle) google.clear();
   };
-
-  const showSpinner = loading || detailsLoading;
 
   return (
     <div ref={containerRef} className={cn("relative", className)}>
@@ -194,13 +128,13 @@ export const LocationAutocomplete = ({
           inputClassName,
         )}
       />
-      {showSpinner && (
+      {loading && (
         <Loader2
           size={14}
           className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-muted-foreground"
         />
       )}
-      {!showSpinner && value && (
+      {!loading && value && (
         <button
           type="button"
           onClick={handleClear}
@@ -211,7 +145,6 @@ export const LocationAutocomplete = ({
         </button>
       )}
 
-      {/* Dropdown */}
       {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-popover border border-border rounded-2xl shadow-xl max-h-80 overflow-y-auto animate-in fade-in-0 slide-in-from-top-1">
           {items.length > 0 ? (
