@@ -254,11 +254,22 @@ export const MapView = ({ locations = [], hoveredId, loading = false, onMarkerCl
     const { centerLat, centerLng, radiusKm } = lockToRadius;
     const applyMinZoom = () => {
       const bounds = computeRadiusBounds(centerLat, centerLng, radiusKm);
-      const z = map.getBoundsZoom(bounds, false, L.point(20, 20));
+      // inside=true → returns the smallest zoom at which the bounds FILL the viewport
+      // (so user can never see area outside the radius)
+      const z = map.getBoundsZoom(bounds, true, L.point(0, 0));
       map.setMinZoom(z);
       if (map.getZoom() < z) {
-        map.setZoom(z, { animate: true });
+        map.setZoom(z, { animate: false });
       }
+    };
+
+    // Run once map is ready, plus a short retry to cover container size race
+    applyMinZoom();
+    const retry = setTimeout(applyMinZoom, 250);
+    map.on("resize", applyMinZoom);
+    return () => {
+      clearTimeout(retry);
+      map.off("resize", applyMinZoom);
     };
 
     applyMinZoom();
