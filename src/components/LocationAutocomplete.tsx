@@ -111,11 +111,12 @@ export const LocationAutocomplete = ({
 
   const handleSelectLocation = useCallback(
     (item: DropdownItem) => {
+      // Đánh dấu skip 1 lần effect kế tiếp để onChange(item.main) không re-fetch và mở lại dropdown.
+      skipNextFetchRef.current = true;
       onChange(item.main);
       setIsOpen(false);
       const bounds = nominatimResultToBounds(item.raw, radiusKm);
       onSelectLocation(item.raw, bounds);
-      // Giữ lại items để khi user focus lại vào ô vẫn thấy danh sách gợi ý.
     },
     [onChange, onSelectLocation, radiusKm],
   );
