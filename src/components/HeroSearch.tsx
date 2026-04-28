@@ -136,16 +136,17 @@ export const HeroSearch = () => {
     navigate(`/search?${params.toString()}`);
   };
 
-  // User gõ lại → huỷ bounds đã chọn (chỉ truyền lat/lng khi thực sự chọn gợi ý).
-  const handleKeywordChange = (next: string) => {
-    setSearchKeyword(next);
-    if (geoBounds) setGeoBounds(null);
-  };
-
-  const handleLocationSelect = (_result: any, bounds: GeoBounds) => {
+  const handleSelectLocation = (_result: any, bounds: GeoBounds) => {
     setGeoBounds(bounds);
     // Tự động tìm ngay khi chọn gợi ý, đồng thời truyền bounds vừa chọn.
     handleSearch(bounds);
+  };
+
+  // User chọn mục "Tìm …" hoặc nhấn Enter → tìm theo từ khóa, không bbox.
+  const handleSubmitKeyword = (text: string) => {
+    setSearchKeyword(text);
+    setGeoBounds(null);
+    handleSearch(null);
   };
 
   const advancedFilterCount = [wardId, priceUuid, sizeUuid, apartmentTypeUuid].filter(Boolean).length;
