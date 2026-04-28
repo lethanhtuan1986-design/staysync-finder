@@ -1,68 +1,39 @@
 ## Mục tiêu
+Thay phân trang Prev/Next ở `/search` bằng **infinite scroll** — tự động tải thêm khi cuộn xuống đáy.
 
-1. Tạo hằng số `PAGE_SIZE_DEFAULT = 30` dùng chung toàn dự án.
-2. Áp dụng vào tất cả các nơi đang truyền `pageSize` (trừ những chỗ có giá trị đặc thù — sẽ giữ nguyên, xem ghi chú).
-3. Thêm phân trang (pagination) cho `SearchPage.tsx` thay vì chỉ load 1 trang.
+## Thay đổi chính trong `src/pages/SearchPage.tsx`
 
----
+1. **Đổi data layer**: thay `useQuery` bằng `useInfiniteQuery` của react-query.
+   - `queryFn({ pageParam })` gọi `advertisementService.getListPaged({ ...filters, page: pageParam, pageSize: PAGE_SIZE })`.
+   - `initialPageParam: 1`.
+   - `getNextPageParam(lastPage, allPages)`: trả `allPages.length + 1` nếu `lastPage.items.length >= PAGE_SIZE`, ngược lại `undefined` (vì `totalCount` không tin được — theo memory).
+   - Flatten: `advertisements = data.pages.flatMap(p => p.items ?? [])`.
 
-## 1. Tạo hằng số chung
+2. **Bỏ state/UI phân trang cũ**:
+   - Xoá `const [page, setPage] = useState(1)`, `goToPage`, `pageItems`, `totalPages`, và toàn bộ block JSX `<Pagination>...`.
+   - Bỏ import `Pagination*` từ `@/components/ui/pagination`.
+   - Bỏ `keepPreviousData` import.
 
-Tạo file mới `src/lib/pagination.ts`:
-```ts
-export const PAGE_SIZE_DEFAULT = 30;
-```
+3. **Reset khi filter đổi**: react-query tự reset vì `queryKey` thay đổi → không cần effect riêng.
 
-## 2. Áp dụng vào các nơi dùng `pageSize`
+4. **Sentinel + IntersectionObserver**:
+   - Thêm `loadMoreRef = useRef<HTMLDivElement>(null)` đặt ngay sau grid kết quả.
+   - `useEffect` tạo `IntersectionObserver` với `rootMargin: "400px 0px"` (preload sớm trước khi chạm đáy) — khi `isIntersecting && hasNextPage && !isFetchingNextPage` thì gọi `fetchNextPage()`.
+   - Cleanup observer khi unmount/queryKey đổi.
 
-Phân loại theo ngữ cảnh (vì không phải mọi `pageSize` đều có cùng ý nghĩa):
+5. **UI trạng thái**:
+   - Lần load đầu (`isLoading`): giữ skeleton grid như hiện tại (PAGE_SIZE ô).
+   - Đang fetch trang tiếp theo (`isFetchingNextPage`): hiện 1 hàng skeleton nhỏ (3 ô) + spinner `Loader2` ở giữa dưới grid.
+   - Hết dữ liệu (`!hasNextPage && advertisements.length > 0`): hiện text mờ "Đã hiển thị tất cả kết quả" (i18n key mới `search.endOfResults`).
+   - `EmptyState` giữ nguyên cho trường hợp 0 kết quả.
 
-**Nhóm A — Dùng `PAGE_SIZE_DEFAULT` (danh sách phòng chính, mục đích phân trang chuẩn):**
-- `src/pages/SearchPage.tsx` — bỏ `const PAGE_SIZE = 30` cục bộ, dùng `PAGE_SIZE_DEFAULT`.
-- `src/pages/SavedRooms.tsx` (đang `20`) → `PAGE_SIZE_DEFAULT`.
-- `src/pages/Index.tsx` các nơi `pageSize: 30` → `PAGE_SIZE_DEFAULT`.
-- `src/components/CustomerReviews.tsx` (đang `20`) → `PAGE_SIZE_DEFAULT`.
+6. **i18n**: thêm key `search.endOfResults` vào cả 5 file locale (vi/en/ja/ko/zh).
 
-**Nhóm B — Giữ nguyên (có lý do nghiệp vụ riêng), KHÔNG đổi:**
-- `src/pages/Index.tsx` chỗ `pageSize: 100` (load catalog/banner đặc biệt).
-- `src/pages/MapSearchPage.tsx` `pageSize: 100` — bản đồ cần load nhiều marker theo viewport.
-- `src/components/HeroSearch.tsx` `pageSize: 100` — load catalog province cho autocomplete.
-- `src/pages/SearchPage.tsx` dòng 101 `pageSize: 100` — load apartmentTypes (catalog dropdown).
-- `src/components/PropertyReviews.tsx` `PAGE_SIZE = 5` — UX riêng cho khối review (load more từng 5).
-- `src/components/SimilarRooms.tsx` `pageSize: 10` — slot phòng tương tự.
+## Lưu ý kỹ thuật
+- Dùng `useCallback` ref pattern cho sentinel hoặc `useEffect` cũng được — chọn `useEffect` cho đơn giản, dependency theo `hasNextPage`, `isFetchingNextPage`, `fetchNextPage`.
+- Vì `totalCount` không ổn định, **không** hiển thị "X / Y kết quả" khi infinite — chỉ hiện số đã load (nếu hiện tại có).
+- Giữ `listRef` (đã có) để khi bộ lọc đổi không cần scroll thủ công — react-query auto reset về trang 1.
 
-> Nếu bạn muốn ép cả nhóm B về `PAGE_SIZE_DEFAULT`, hãy nói rõ — mặc định plan này chỉ chuẩn hoá những nơi mang ý nghĩa "phân trang danh sách chính".
-
-## 3. Phân trang cho SearchPage
-
-Triển khai client-driven pagination dùng API có sẵn (`page`, `pageSize`, `pagination.totalCount`):
-
-- Thêm state `page` (default 1), reset về 1 khi bất kỳ filter nào thay đổi (keyword, provinceId, wardId, apartmentTypeUuid, price, size, typeOrder, geoBounds).
-- `buildListRequest()` truyền `page` hiện tại và `pageSize: PAGE_SIZE_DEFAULT`.
-- React-query: thêm `page` vào `queryKey`, bật `placeholderData: keepPreviousData` để tránh nhảy UI khi đổi trang.
-- Tính `totalPages = Math.ceil(totalCount / PAGE_SIZE_DEFAULT)`. Lưu ý theo memory: `totalCount` từ API không ổn định — fallback: nếu trang hiện tại trả về < `PAGE_SIZE_DEFAULT` items thì coi đây là trang cuối (ẩn nút Next), nếu ≥ thì cho phép Next.
-- UI: dùng `src/components/ui/pagination.tsx` (đã có sẵn), hiển thị Previous / số trang (rút gọn với ellipsis: 1 … current-1 current current+1 … last) / Next, đặt bên dưới grid danh sách.
-- Khi đổi trang: `setPage(n)` rồi `listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })`.
-- Skeleton vẫn giữ `PAGE_SIZE_DEFAULT` ô khi đang load lần đầu (`!listData`).
-
-### Wireframe khu vực kết quả
-```text
-[ Grid kết quả 1 / 2 / 3 cột ]
-[ ────────────────────────── ]
-[ « Prev   1 … 4 [5] 6 … 12   Next » ]
-```
-
-## 4. Memory
-
-Cập nhật `mem://technical/api-integration` thêm dòng: "Default pageSize cho danh sách = `PAGE_SIZE_DEFAULT` (30) ở `src/lib/pagination.ts`."
-
----
-
-## File sẽ chỉnh sửa
-
-- `src/lib/pagination.ts` (tạo mới)
-- `src/pages/SearchPage.tsx` (dùng hằng + thêm pagination state/UI)
-- `src/pages/SavedRooms.tsx`
-- `src/pages/Index.tsx`
-- `src/components/CustomerReviews.tsx`
-- `mem://technical/api-integration` + `mem://index.md`
+## File ảnh hưởng
+- `src/pages/SearchPage.tsx`
+- `src/i18n/locales/{vi,en,ja,ko,zh}.json`
