@@ -20,7 +20,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MiniMapPreview } from "@/components/MiniMapPreview";
-import { GeoBounds, RADIUS_OPTIONS, DEFAULT_RADIUS_KM } from "@/lib/geocoding";
+import { GeoBounds, RADIUS_OPTIONS, DEFAULT_RADIUS_KM, latLngToBounds } from "@/lib/geocoding";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useSelectedProvince } from "@/hooks/useSelectedProvince";
 import { getProvinceBias } from "@/lib/province-geo";
@@ -63,8 +63,13 @@ const SearchPage = () => {
   const [typeOrder, setTypeOrder] = useState(searchParams.get("typeOrder") || "0");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
-  // Mặc định long/lat là null khi vào trang. Chỉ set khi user chọn 1 gợi ý từ autocomplete.
-  const [geoBounds, setGeoBounds] = useState<GeoBounds | null>(null);
+  // Mặc định center là null khi vào trang. Chỉ set khi user chọn 1 gợi ý từ autocomplete.
+  // Bounds được tính lại từ center + radiusKm để khi user đổi bán kính sẽ áp dụng ngay.
+  const [geoCenter, setGeoCenter] = useState<{ lat: number; lng: number } | null>(null);
+  const geoBounds = useMemo<GeoBounds | null>(
+    () => (geoCenter ? latLngToBounds(geoCenter.lat, geoCenter.lng, radiusKm) : null),
+    [geoCenter, radiusKm],
+  );
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const selectedPriceUuid =
@@ -127,15 +132,19 @@ const SearchPage = () => {
     return parts.join(" ");
   }, [provinceId, wardId, provinces, wards, selectedProvinceName]);
 
-  const handleLocationSelect = useCallback((_result: any, bounds: GeoBounds) => {
-    setGeoBounds(bounds);
+  const handleLocationSelect = useCallback((result: any, _bounds: GeoBounds) => {
+    const lat = parseFloat(result?.lat);
+    const lng = parseFloat(result?.lon);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      setGeoCenter({ lat, lng });
+    }
   }, []);
 
-  // Khi user gõ lại trong ô tìm kiếm: huỷ geoBounds đã chọn trước đó.
+  // Khi user gõ lại trong ô tìm kiếm: huỷ điểm đã chọn trước đó.
   // lat/lng chỉ được truyền lên khi user thực sự chọn 1 gợi ý từ dropdown.
   const handleKeywordChange = useCallback((next: string) => {
     setKeyword(next);
-    setGeoBounds((prev) => (prev ? null : prev));
+    setGeoCenter((prev) => (prev ? null : prev));
   }, []);
 
   const buildListRequest = (pageParam: number): GetListAdvertisementRequest => {
