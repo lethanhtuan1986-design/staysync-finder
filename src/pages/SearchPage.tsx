@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { SEO } from "@/components/SEO";
 import { Navbar } from "@/components/Navbar";
 import { AdvertisementCard } from "@/components/AdvertisementCard";
@@ -24,15 +24,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useSelectedProvince } from "@/hooks/useSelectedProvince";
 import { getProvinceBias } from "@/lib/province-geo";
 import { PAGE_SIZE_DEFAULT } from "@/lib/pagination";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-  PaginationEllipsis,
-} from "@/components/ui/pagination";
 
 const PAGE_SIZE = PAGE_SIZE_DEFAULT;
 
@@ -67,7 +58,7 @@ const SearchPage = () => {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
   const [geoBounds, setGeoBounds] = useState<GeoBounds | null>(null);
-  const [page, setPage] = useState(1);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const selectedPriceUuid =
     filterPrices.find((fp) => String(fp.value || "") === priceFrom && String(fp.valueTo || "") === priceTo)?.uuid || "";
@@ -133,10 +124,10 @@ const SearchPage = () => {
     setGeoBounds(bounds);
   }, []);
 
-  const buildListRequest = (): GetListAdvertisementRequest => {
+  const buildListRequest = (pageParam: number): GetListAdvertisementRequest => {
     const req: GetListAdvertisementRequest = {
       isPaging: 1,
-      page,
+      page: pageParam,
       pageSize: PAGE_SIZE,
       isHot: 0,
       typeOrder: Number(typeOrder),
@@ -161,9 +152,11 @@ const SearchPage = () => {
   const {
     data: listData,
     isLoading: loading,
-    isFetching: fetching,
     error: queryError,
-  } = useQuery({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: [
       "advertisements-list",
       keyword,
@@ -177,65 +170,39 @@ const SearchPage = () => {
       typeOrder,
       geoBounds?.neLat,
       geoBounds?.swLat,
-      page,
     ],
-    queryFn: () => httpRequest({ http: advertisementService.getListPaged(buildListRequest()) }),
-    placeholderData: keepPreviousData,
+    queryFn: ({ pageParam }) =>
+      httpRequest({ http: advertisementService.getListPaged(buildListRequest(pageParam as number)) }),
+    initialPageParam: 1,
+    // totalCount API không ổn định — dùng độ dài trang để biết có trang kế tiếp.
+    getNextPageParam: (lastPage: any, allPages) => {
+      const items = lastPage?.items ?? [];
+      return items.length >= PAGE_SIZE ? allPages.length + 1 : undefined;
+    },
   });
 
   const advertisements = useMemo(() => {
-    return (listData as any)?.items || [];
+    return (listData?.pages ?? []).flatMap((p: any) => p?.items ?? []);
   }, [listData]);
-  const rawTotalCount: number = (listData as any)?.pagination?.totalCount || 0;
-  // totalCount từ API không ổn định — fallback heuristic dựa trên độ dài trang.
-  const totalPages = useMemo(() => {
-    if (rawTotalCount > 0) return Math.max(1, Math.ceil(rawTotalCount / PAGE_SIZE));
-    // Nếu trang hiện tại đầy → có khả năng còn trang sau.
-    if (advertisements.length >= PAGE_SIZE) return page + 1;
-    return Math.max(1, page);
-  }, [rawTotalCount, advertisements.length, page]);
-  const totalCount = rawTotalCount || advertisements.length;
   const error = queryError ? t("search.serverError") : null;
 
-  // Reset page về 1 khi filter thay đổi
+  // Sentinel: tự fetch trang sau khi gần chạm đáy.
   useEffect(() => {
-    setPage(1);
-  }, [
-    keyword,
-    provinceId,
-    wardId,
-    apartmentTypeUuid,
-    priceFrom,
-    priceTo,
-    apartmentSizeFrom,
-    apartmentSizeTo,
-    typeOrder,
-    geoBounds?.neLat,
-    geoBounds?.swLat,
-  ]);
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage && !loading) {
+          fetchNextPage();
+        }
+      },
+      { rootMargin: "400px 0px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, loading, fetchNextPage, advertisements.length]);
 
-  const goToPage = useCallback((next: number) => {
-    const target = Math.max(1, next);
-    setPage(target);
-    setTimeout(() => {
-      listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  }, []);
-
-  // Build danh sách số trang rút gọn với ellipsis.
-  const pageItems = useMemo<(number | "ellipsis")[]>(() => {
-    const total = totalPages;
-    const current = page;
-    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
-    const items: (number | "ellipsis")[] = [1];
-    const start = Math.max(2, current - 1);
-    const end = Math.min(total - 1, current + 1);
-    if (start > 2) items.push("ellipsis");
-    for (let i = start; i <= end; i++) items.push(i);
-    if (end < total - 1) items.push("ellipsis");
-    items.push(total);
-    return items;
-  }, [page, totalPages]);
 
   // Sync state to URL
   useEffect(() => {
@@ -378,7 +345,7 @@ const SearchPage = () => {
             {/* Result count */}
             <div className="flex items-center gap-2 ml-auto shrink-0">
               <p className="text-sm text-foreground font-medium whitespace-nowrap">
-                {totalCount} {t("search.found")}
+                {advertisements.length} {t("search.found")}{hasNextPage ? "+" : ""}
               </p>
               {loading && <Loader2 size={16} className="animate-spin text-muted-foreground" />}
             </div>
@@ -454,7 +421,7 @@ const SearchPage = () => {
             {/* Row 3: Result count */}
             <div className="flex items-center gap-2 text-left">
               <p className="text-sm text-muted-foreground font-medium">
-                {totalCount} {t("search.found")}
+                {advertisements.length} {t("search.found")}{hasNextPage ? "+" : ""}
               </p>
               {loading && <Loader2 size={14} className="animate-spin text-muted-foreground" />}
             </div>
@@ -627,12 +594,7 @@ const SearchPage = () => {
 
               {advertisements.length > 0 && (
                 <>
-                  <div
-                    className={cn(
-                      "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 transition-opacity",
-                      fetching && !loading && "opacity-60",
-                    )}
-                  >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                     {advertisements.map((ad: any, i: number) => (
                       <div key={ad.uuid}>
                         <AdvertisementCard data={ad} index={i} />
@@ -640,54 +602,18 @@ const SearchPage = () => {
                     ))}
                   </div>
 
-                  {totalPages > 1 && (
-                    <Pagination className="mt-8">
-                      <PaginationContent>
-                        <PaginationItem>
-                          <PaginationPrevious
-                            href="#"
-                            aria-disabled={page <= 1}
-                            className={cn(page <= 1 && "pointer-events-none opacity-40")}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (page > 1) goToPage(page - 1);
-                            }}
-                          />
-                        </PaginationItem>
-                        {pageItems.map((it, idx) =>
-                          it === "ellipsis" ? (
-                            <PaginationItem key={`e-${idx}`}>
-                              <PaginationEllipsis />
-                            </PaginationItem>
-                          ) : (
-                            <PaginationItem key={it}>
-                              <PaginationLink
-                                href="#"
-                                isActive={it === page}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  goToPage(it);
-                                }}
-                              >
-                                {it}
-                              </PaginationLink>
-                            </PaginationItem>
-                          ),
-                        )}
-                        <PaginationItem>
-                          <PaginationNext
-                            href="#"
-                            aria-disabled={page >= totalPages}
-                            className={cn(page >= totalPages && "pointer-events-none opacity-40")}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (page < totalPages) goToPage(page + 1);
-                            }}
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
-                  )}
+                  {/* Sentinel + trạng thái load thêm */}
+                  <div ref={loadMoreRef} className="mt-8 flex justify-center items-center min-h-[40px]">
+                    {isFetchingNextPage && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Loader2 size={16} className="animate-spin" />
+                        <span>{t("search.loadingMore")}</span>
+                      </div>
+                    )}
+                    {!hasNextPage && !isFetchingNextPage && advertisements.length >= PAGE_SIZE && (
+                      <span className="text-sm text-muted-foreground">{t("search.endOfResults")}</span>
+                    )}
+                  </div>
                 </>
               )}
 

@@ -92,7 +92,9 @@
     "filter": "Filters",
     "noResultMapHint": "Try moving the map or changing filters",
     "showList": "Show list",
-    "showMap": "Show map"
+    "showMap": "Show map",
+    "loadingMore": "Loading more...",
+    "endOfResults": "You have reached the end"
   },
   "schedule": {
     "title": "Schedule a visit",

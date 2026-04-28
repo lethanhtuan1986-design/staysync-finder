@@ -92,7 +92,9 @@
     "filter": "필터",
     "noResultMapHint": "지도를 이동하거나 필터를 변경해 보세요",
     "showList": "목록 보기",
-    "showMap": "지도 보기"
+    "showMap": "지도 보기",
+    "loadingMore": "더 불러오는 중...",
+    "endOfResults": "모든 결과를 표시했습니다"
   },
   "schedule": {
     "title": "방문 예약",

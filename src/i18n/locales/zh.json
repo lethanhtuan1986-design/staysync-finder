@@ -92,7 +92,9 @@
     "filter": "筛选",
     "noResultMapHint": "请移动地图或更改筛选条件",
     "showList": "显示列表",
-    "showMap": "显示地图"
+    "showMap": "显示地图",
+    "loadingMore": "加载更多...",
+    "endOfResults": "已显示全部结果"
   },
   "schedule": {
     "title": "预约看房",
