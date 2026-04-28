@@ -166,10 +166,10 @@ export interface GetListAdvertisementRequest {
   wardId?: string;
   address?: string;
   isHot?: number;
-  neLat?: number;
-  neLng?: number;
-  swLat?: number;
-  swLng?: number;
+  neLat?: number | null;
+  neLng?: number | null;
+  swLat?: number | null;
+  swLng?: number | null;
 }
 
 export interface GetSimilarAdvertisementRequest {
@@ -201,10 +201,10 @@ export interface GetAdvertisementsForMapRequest {
   wardId?: string;
   address?: string;
   isHot?: number;
-  neLat?: number;
-  neLng?: number;
-  swLat?: number;
-  swLng?: number;
+  neLat?: number | null;
+  neLng?: number | null;
+  swLat?: number | null;
+  swLng?: number | null;
 }
 
 export interface GetListAdvertisementResponse {

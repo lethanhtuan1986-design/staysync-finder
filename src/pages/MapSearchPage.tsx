@@ -238,6 +238,11 @@ const MapSearchPage = () => {
       req.neLng = radiusBounds.neLng;
       req.swLat = radiusBounds.swLat;
       req.swLng = radiusBounds.swLng;
+    } else {
+      req.neLat = null;
+      req.neLng = null;
+      req.swLat = null;
+      req.swLng = null;
     }
     return req;
   };
