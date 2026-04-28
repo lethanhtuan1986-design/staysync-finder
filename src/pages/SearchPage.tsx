@@ -609,9 +609,7 @@ const SearchPage = () => {
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                     {advertisements.map((ad: any, i: number) => (
-                      <div key={ad.uuid}>
-                        <AdvertisementCard data={ad} index={i} />
-                      </div>
+                      <AdvertisementCard key={ad.uuid} data={ad} index={i} priority={i < 6} />
                     ))}
                   </div>
 
