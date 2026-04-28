@@ -254,7 +254,7 @@ export const MapView = ({ locations = [], hoveredId, loading = false, onMarkerCl
     const { centerLat, centerLng, radiusKm } = lockToRadius;
     const applyMinZoom = () => {
       const bounds = computeRadiusBounds(centerLat, centerLng, radiusKm);
-      const z = map.getBoundsZoom(bounds, false, [20, 20]);
+      const z = map.getBoundsZoom(bounds, false, L.point(20, 20));
       map.setMinZoom(z);
       if (map.getZoom() < z) {
         map.setZoom(z, { animate: true });
