@@ -105,18 +105,26 @@ const MapSearchPage = () => {
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number; zoom: number; label?: string } | null>(null);
   const [centerPoint, setCenterPoint] = useState<{ lat: number; lng: number } | null>(null);
 
-  // Init center from user location on first load
+  // Init center: user GPS first, fallback to province bias so radius lock always applies
   useEffect(() => {
-    if (centerPoint) return;
+    let cancelled = false;
     getUserLocation()
       .then((loc) => {
+        if (cancelled) return;
         if (loc && isFinite(loc.lat) && isFinite(loc.lng)) {
           setCenterPoint({ lat: loc.lat, lng: loc.lng });
+        } else if (bias) {
+          setCenterPoint({ lat: bias.lat, lng: bias.lng });
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled && bias) setCenterPoint({ lat: bias.lat, lng: bias.lng });
+      });
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [bias?.lat, bias?.lng]);
 
   const lockToRadius = useMemo(
     () =>
