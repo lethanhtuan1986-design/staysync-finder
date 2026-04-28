@@ -248,7 +248,19 @@ const MapSearchPage = () => {
   } as any);
 
   const mapLocations = useMemo<MapLocationGroup[]>(() => (mapData as any)?.items ?? [], [mapData]);
-  const allAds = useMemo<AdvertisementData[]>(() => mapLocations.flatMap((loc) => loc.ads), [mapLocations]);
+  const allAds = useMemo<AdvertisementData[]>(() => {
+    const seen = new Set<string>();
+    const result: AdvertisementData[] = [];
+    for (const loc of mapLocations) {
+      for (const ad of loc.ads) {
+        if (ad?.uuid && !seen.has(ad.uuid)) {
+          seen.add(ad.uuid);
+          result.push(ad);
+        }
+      }
+    }
+    return result;
+  }, [mapLocations]);
 
   // Client-side infinite scroll cho danh sách bên trái
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
