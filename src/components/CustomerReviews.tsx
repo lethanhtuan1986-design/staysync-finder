@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { httpRequest, getImageUrl } from "@/services/index";
 import feedbackService, { FeedbackItem } from "@/services/feedback.service";
+import { PAGE_SIZE_DEFAULT } from "@/lib/pagination";
 import { Star, ChevronDown, ChevronUp } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useTranslation } from "react-i18next";
@@ -17,7 +18,7 @@ export const CustomerReviews = () => {
         http: feedbackService.getListPaged({
           isPaging: 1,
           page: 1,
-          pageSize: 20,
+          pageSize: PAGE_SIZE_DEFAULT,
           status: 1,
         }),
       }),

@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { SEO } from "@/components/SEO";
 import { Navbar } from "@/components/Navbar";
 import { AdvertisementCard } from "@/components/AdvertisementCard";
@@ -23,8 +23,18 @@ import { GeoBounds, RADIUS_OPTIONS, DEFAULT_RADIUS_KM } from "@/lib/geocoding";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useSelectedProvince } from "@/hooks/useSelectedProvince";
 import { getProvinceBias } from "@/lib/province-geo";
+import { PAGE_SIZE_DEFAULT } from "@/lib/pagination";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 
-const PAGE_SIZE = 30;
+const PAGE_SIZE = PAGE_SIZE_DEFAULT;
 
 const SORT_OPTIONS = [
   { value: "0", label: "Mới nhất" },
@@ -57,6 +67,7 @@ const SearchPage = () => {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
   const [geoBounds, setGeoBounds] = useState<GeoBounds | null>(null);
+  const [page, setPage] = useState(1);
 
   const selectedPriceUuid =
     filterPrices.find((fp) => String(fp.value || "") === priceFrom && String(fp.valueTo || "") === priceTo)?.uuid || "";
@@ -125,7 +136,7 @@ const SearchPage = () => {
   const buildListRequest = (): GetListAdvertisementRequest => {
     const req: GetListAdvertisementRequest = {
       isPaging: 1,
-      page: 1,
+      page,
       pageSize: PAGE_SIZE,
       isHot: 0,
       typeOrder: Number(typeOrder),
@@ -150,6 +161,7 @@ const SearchPage = () => {
   const {
     data: listData,
     isLoading: loading,
+    isFetching: fetching,
     error: queryError,
   } = useQuery({
     queryKey: [
@@ -165,15 +177,65 @@ const SearchPage = () => {
       typeOrder,
       geoBounds?.neLat,
       geoBounds?.swLat,
+      page,
     ],
     queryFn: () => httpRequest({ http: advertisementService.getListPaged(buildListRequest()) }),
+    placeholderData: keepPreviousData,
   });
 
   const advertisements = useMemo(() => {
     return (listData as any)?.items || [];
   }, [listData]);
-  const totalCount = (listData as any)?.pagination?.totalCount || advertisements.length;
+  const rawTotalCount: number = (listData as any)?.pagination?.totalCount || 0;
+  // totalCount từ API không ổn định — fallback heuristic dựa trên độ dài trang.
+  const totalPages = useMemo(() => {
+    if (rawTotalCount > 0) return Math.max(1, Math.ceil(rawTotalCount / PAGE_SIZE));
+    // Nếu trang hiện tại đầy → có khả năng còn trang sau.
+    if (advertisements.length >= PAGE_SIZE) return page + 1;
+    return Math.max(1, page);
+  }, [rawTotalCount, advertisements.length, page]);
+  const totalCount = rawTotalCount || advertisements.length;
   const error = queryError ? t("search.serverError") : null;
+
+  // Reset page về 1 khi filter thay đổi
+  useEffect(() => {
+    setPage(1);
+  }, [
+    keyword,
+    provinceId,
+    wardId,
+    apartmentTypeUuid,
+    priceFrom,
+    priceTo,
+    apartmentSizeFrom,
+    apartmentSizeTo,
+    typeOrder,
+    geoBounds?.neLat,
+    geoBounds?.swLat,
+  ]);
+
+  const goToPage = useCallback((next: number) => {
+    const target = Math.max(1, next);
+    setPage(target);
+    setTimeout(() => {
+      listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  }, []);
+
+  // Build danh sách số trang rút gọn với ellipsis.
+  const pageItems = useMemo<(number | "ellipsis")[]>(() => {
+    const total = totalPages;
+    const current = page;
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const items: (number | "ellipsis")[] = [1];
+    const start = Math.max(2, current - 1);
+    const end = Math.min(total - 1, current + 1);
+    if (start > 2) items.push("ellipsis");
+    for (let i = start; i <= end; i++) items.push(i);
+    if (end < total - 1) items.push("ellipsis");
+    items.push(total);
+    return items;
+  }, [page, totalPages]);
 
   // Sync state to URL
   useEffect(() => {
@@ -564,13 +626,69 @@ const SearchPage = () => {
               )}
 
               {advertisements.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                  {advertisements.map((ad: any, i: number) => (
-                    <div key={ad.uuid}>
-                      <AdvertisementCard data={ad} index={i} />
-                    </div>
-                  ))}
-                </div>
+                <>
+                  <div
+                    className={cn(
+                      "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 transition-opacity",
+                      fetching && !loading && "opacity-60",
+                    )}
+                  >
+                    {advertisements.map((ad: any, i: number) => (
+                      <div key={ad.uuid}>
+                        <AdvertisementCard data={ad} index={i} />
+                      </div>
+                    ))}
+                  </div>
+
+                  {totalPages > 1 && (
+                    <Pagination className="mt-8">
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious
+                            href="#"
+                            aria-disabled={page <= 1}
+                            className={cn(page <= 1 && "pointer-events-none opacity-40")}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (page > 1) goToPage(page - 1);
+                            }}
+                          />
+                        </PaginationItem>
+                        {pageItems.map((it, idx) =>
+                          it === "ellipsis" ? (
+                            <PaginationItem key={`e-${idx}`}>
+                              <PaginationEllipsis />
+                            </PaginationItem>
+                          ) : (
+                            <PaginationItem key={it}>
+                              <PaginationLink
+                                href="#"
+                                isActive={it === page}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  goToPage(it);
+                                }}
+                              >
+                                {it}
+                              </PaginationLink>
+                            </PaginationItem>
+                          ),
+                        )}
+                        <PaginationItem>
+                          <PaginationNext
+                            href="#"
+                            aria-disabled={page >= totalPages}
+                            className={cn(page >= totalPages && "pointer-events-none opacity-40")}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (page < totalPages) goToPage(page + 1);
+                            }}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  )}
+                </>
               )}
 
               {!loading && advertisements.length === 0 && (
