@@ -63,8 +63,13 @@ const SearchPage = () => {
   const [typeOrder, setTypeOrder] = useState(searchParams.get("typeOrder") || "0");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
-  // Mặc định long/lat là null khi vào trang. Chỉ set khi user chọn 1 gợi ý từ autocomplete.
-  const [geoBounds, setGeoBounds] = useState<GeoBounds | null>(null);
+  // Mặc định center là null khi vào trang. Chỉ set khi user chọn 1 gợi ý từ autocomplete.
+  // Bounds được tính lại từ center + radiusKm để khi user đổi bán kính sẽ áp dụng ngay.
+  const [geoCenter, setGeoCenter] = useState<{ lat: number; lng: number } | null>(null);
+  const geoBounds = useMemo<GeoBounds | null>(
+    () => (geoCenter ? latLngToBounds(geoCenter.lat, geoCenter.lng, radiusKm) : null),
+    [geoCenter, radiusKm],
+  );
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const selectedPriceUuid =
