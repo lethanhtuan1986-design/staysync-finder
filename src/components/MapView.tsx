@@ -299,9 +299,6 @@ export const MapView = ({ locations = [], hoveredId, loading = false, onMarkerCl
 
     circle.addTo(map);
     circleRef.current = circle;
-
-    // Auto fit bounds to circle
-    map.fitBounds(circle.getBounds(), { padding: [40, 40], maxZoom: 15, animate: true });
   }, [searchOverlay]);
 
   // Fly to a specific location (from Google Places / Nominatim)
