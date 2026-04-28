@@ -124,10 +124,10 @@ const SearchPage = () => {
     setGeoBounds(bounds);
   }, []);
 
-  const buildListRequest = (): GetListAdvertisementRequest => {
+  const buildListRequest = (pageParam: number): GetListAdvertisementRequest => {
     const req: GetListAdvertisementRequest = {
       isPaging: 1,
-      page,
+      page: pageParam,
       pageSize: PAGE_SIZE,
       isHot: 0,
       typeOrder: Number(typeOrder),
@@ -152,9 +152,11 @@ const SearchPage = () => {
   const {
     data: listData,
     isLoading: loading,
-    isFetching: fetching,
     error: queryError,
-  } = useQuery({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: [
       "advertisements-list",
       keyword,
@@ -168,65 +170,39 @@ const SearchPage = () => {
       typeOrder,
       geoBounds?.neLat,
       geoBounds?.swLat,
-      page,
     ],
-    queryFn: () => httpRequest({ http: advertisementService.getListPaged(buildListRequest()) }),
-    placeholderData: keepPreviousData,
+    queryFn: ({ pageParam }) =>
+      httpRequest({ http: advertisementService.getListPaged(buildListRequest(pageParam as number)) }),
+    initialPageParam: 1,
+    // totalCount API không ổn định — dùng độ dài trang để biết có trang kế tiếp.
+    getNextPageParam: (lastPage: any, allPages) => {
+      const items = lastPage?.items ?? [];
+      return items.length >= PAGE_SIZE ? allPages.length + 1 : undefined;
+    },
   });
 
   const advertisements = useMemo(() => {
-    return (listData as any)?.items || [];
+    return (listData?.pages ?? []).flatMap((p: any) => p?.items ?? []);
   }, [listData]);
-  const rawTotalCount: number = (listData as any)?.pagination?.totalCount || 0;
-  // totalCount từ API không ổn định — fallback heuristic dựa trên độ dài trang.
-  const totalPages = useMemo(() => {
-    if (rawTotalCount > 0) return Math.max(1, Math.ceil(rawTotalCount / PAGE_SIZE));
-    // Nếu trang hiện tại đầy → có khả năng còn trang sau.
-    if (advertisements.length >= PAGE_SIZE) return page + 1;
-    return Math.max(1, page);
-  }, [rawTotalCount, advertisements.length, page]);
-  const totalCount = rawTotalCount || advertisements.length;
   const error = queryError ? t("search.serverError") : null;
 
-  // Reset page về 1 khi filter thay đổi
+  // Sentinel: tự fetch trang sau khi gần chạm đáy.
   useEffect(() => {
-    setPage(1);
-  }, [
-    keyword,
-    provinceId,
-    wardId,
-    apartmentTypeUuid,
-    priceFrom,
-    priceTo,
-    apartmentSizeFrom,
-    apartmentSizeTo,
-    typeOrder,
-    geoBounds?.neLat,
-    geoBounds?.swLat,
-  ]);
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage && !loading) {
+          fetchNextPage();
+        }
+      },
+      { rootMargin: "400px 0px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, loading, fetchNextPage, advertisements.length]);
 
-  const goToPage = useCallback((next: number) => {
-    const target = Math.max(1, next);
-    setPage(target);
-    setTimeout(() => {
-      listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  }, []);
-
-  // Build danh sách số trang rút gọn với ellipsis.
-  const pageItems = useMemo<(number | "ellipsis")[]>(() => {
-    const total = totalPages;
-    const current = page;
-    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
-    const items: (number | "ellipsis")[] = [1];
-    const start = Math.max(2, current - 1);
-    const end = Math.min(total - 1, current + 1);
-    if (start > 2) items.push("ellipsis");
-    for (let i = start; i <= end; i++) items.push(i);
-    if (end < total - 1) items.push("ellipsis");
-    items.push(total);
-    return items;
-  }, [page, totalPages]);
 
   // Sync state to URL
   useEffect(() => {
