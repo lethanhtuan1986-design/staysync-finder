@@ -28,7 +28,7 @@ import apartmentTypeService, { ApartmentTypeItem } from "@/services/apartmentTyp
 import { httpRequest } from "@/services/index";
 import { PAGE_SIZE_DEFAULT } from "@/lib/pagination";
 import { useTranslation } from "react-i18next";
-import { Search, SlidersHorizontal, Loader2, X, ArrowLeft } from "lucide-react";
+import { Search, SlidersHorizontal, X, ArrowLeft } from "lucide-react";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
