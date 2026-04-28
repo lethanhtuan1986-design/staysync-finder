@@ -640,7 +640,7 @@ const MapSearchPage = () => {
             hoveredId={hoveredId}
             loading={mapLoading && mapLocations.length === 0}
             onMarkerClick={(id) => navigate(`/advertisement/${id}`)}
-            onBoundsChange={handleBoundsChange}
+            
             flyTo={mapCenter}
             lockToRadius={lockToRadius}
             searchOverlay={lockToRadius}
