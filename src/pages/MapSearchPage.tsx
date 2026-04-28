@@ -197,11 +197,9 @@ const MapSearchPage = () => {
     };
   }, [centerPoint, radiusKm]);
 
-  const buildMapRequest = (pageParam: number): GetAdvertisementsForMapRequest => {
-    const req: GetAdvertisementsForMapRequest = {
-      isPaging: 0,
-      page: pageParam,
-      pageSize: PAGE_SIZE,
+  // Build chung filter payload (dùng cho cả map markers + list paged)
+  const buildBaseFilters = () => {
+    const req: Partial<GetAdvertisementsForMapRequest & GetListAdvertisementRequest> = {
       isHot: 0,
       typeOrder: 0,
     };
@@ -227,75 +225,58 @@ const MapSearchPage = () => {
     return req;
   };
 
-  const {
-    data: listData,
-    isLoading: mapLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useInfiniteQuery({
-    queryKey: [
-      "map-advertisements",
-      debouncedKeyword,
-      provinceId,
-      wardId,
-      apartmentTypeUuid,
-      priceFrom,
-      priceTo,
-      apartmentSizeFrom,
-      apartmentSizeTo,
-      radiusBounds?.neLat,
-      radiusBounds?.swLat,
-    ],
-    queryFn: ({ pageParam }) =>
-      httpRequest({ http: advertisementService.getForMap(buildMapRequest(pageParam as number)) }),
-    initialPageParam: 1,
-    // getForMap trả về MapLocationGroup[]; dùng độ dài trang để xác định còn trang sau.
-    getNextPageParam: (lastPage: any, allPages) => {
-      const items = lastPage?.items ?? [];
-      return items.length >= PAGE_SIZE ? allPages.length + 1 : undefined;
-    },
+  const filterDeps = [
+    debouncedKeyword,
+    provinceId,
+    wardId,
+    apartmentTypeUuid,
+    priceFrom,
+    priceTo,
+    apartmentSizeFrom,
+    apartmentSizeTo,
+    radiusBounds?.neLat,
+    radiusBounds?.swLat,
+  ];
+
+  // Query 1: Lấy toàn bộ markers cho bản đồ (không phân trang hiển thị)
+  const { data: mapData, isLoading: mapLoading } = useQuery({
+    queryKey: ["map-advertisements-markers", ...filterDeps],
+    queryFn: () =>
+      httpRequest({
+        http: advertisementService.getForMap({
+          ...buildBaseFilters(),
+          isPaging: 0,
+          page: 1,
+          pageSize: MAP_PAGE_SIZE,
+        } as GetAdvertisementsForMapRequest),
+      }),
   });
 
-  // Gộp các trang location group lại; nếu trùng toạ độ giữa các trang thì merge ads.
-  const mapLocations = useMemo<MapLocationGroup[]>(() => {
-    const merged = new Map<string, MapLocationGroup>();
-    (listData?.pages ?? []).forEach((page: any) => {
-      const groups: MapLocationGroup[] = page?.items ?? [];
-      groups.forEach((g) => {
-        const existing = merged.get(g.point);
-        if (existing) {
-          const seen = new Set(existing.ads.map((a) => a.uuid));
-          g.ads.forEach((a) => {
-            if (!seen.has(a.uuid)) existing.ads.push(a);
-          });
-          existing.totalAds = existing.ads.length;
-        } else {
-          merged.set(g.point, { ...g, ads: [...g.ads] });
-        }
-      });
-    });
-    return Array.from(merged.values());
-  }, [listData]);
+  const mapLocations = useMemo<MapLocationGroup[]>(() => (mapData as any)?.items ?? [], [mapData]);
 
-  const visibleAds = useMemo<AdvertisementData[]>(() => mapLocations.flatMap((loc) => loc.ads), [mapLocations]);
+  // Query 2: Danh sách phòng phân trang (hiển thị bên trái)
+  const { data: pagedData, isLoading: listLoading, isFetching: listFetching } = useQuery({
+    queryKey: ["map-advertisements-list", page, ...filterDeps],
+    queryFn: () =>
+      httpRequest({
+        http: advertisementService.getListPaged({
+          ...buildBaseFilters(),
+          isPaging: 1,
+          page,
+          pageSize: PAGE_SIZE,
+        } as GetListAdvertisementRequest),
+      }),
+  });
 
-  // Infinite scroll sentinel
+  const visibleAds = useMemo<AdvertisementData[]>(() => (pagedData as any)?.items ?? [], [pagedData]);
+  const totalCount: number = (pagedData as any)?.pagination?.totalCount ?? visibleAds.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+
+  // Reset trang về 1 khi đổi filter
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    const node = loadMoreRef.current;
-    if (!node) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage && !mapLoading) {
-          fetchNextPage();
-        }
-      },
-      { rootMargin: "800px 0px" },
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, mapLoading, fetchNextPage, visibleAds.length]);
+    setPage(1);
+  }, filterDeps);
 
   // Sync to URL
   useEffect(() => {
