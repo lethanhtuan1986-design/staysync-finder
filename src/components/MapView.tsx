@@ -241,6 +241,33 @@ export const MapView = ({ locations = [], hoveredId, loading = false, onMarkerCl
     return () => observer.disconnect();
   }, []);
 
+  // Lock zoom-out to the radius bounding box (pan stays free)
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (!lockToRadius) {
+      map.setMinZoom(2);
+      return;
+    }
+
+    const { centerLat, centerLng, radiusKm } = lockToRadius;
+    const applyMinZoom = () => {
+      const bounds = computeRadiusBounds(centerLat, centerLng, radiusKm);
+      const z = map.getBoundsZoom(bounds, false, [20, 20]);
+      map.setMinZoom(z);
+      if (map.getZoom() < z) {
+        map.setZoom(z, { animate: true });
+      }
+    };
+
+    applyMinZoom();
+    map.on("resize", applyMinZoom);
+    return () => {
+      map.off("resize", applyMinZoom);
+    };
+  }, [lockToRadius?.centerLat, lockToRadius?.centerLng, lockToRadius?.radiusKm]);
+
   // Search area circle overlay
   useEffect(() => {
     const map = mapRef.current;
