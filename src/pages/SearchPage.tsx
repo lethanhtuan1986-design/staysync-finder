@@ -54,12 +54,10 @@ const SearchPage = () => {
   const [priceTo, setPriceTo] = useState(searchParams.get("priceTo") || "");
   const [apartmentSizeFrom, setApartmentSizeFrom] = useState(searchParams.get("apartmentSizeFrom") || "");
   const [apartmentSizeTo, setApartmentSizeTo] = useState(searchParams.get("apartmentSizeTo") || "");
+  // `keyword` = text trong ô input, KHÔNG đi vào query.
+  // `appliedKeyword` = từ khóa đã được user submit (chọn mục "Tìm …" hoặc Enter).
   const [keyword, setKeyword] = useState(searchParams.get("q") || "");
-  const [debouncedKeyword, setDebouncedKeyword] = useState(keyword);
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedKeyword(keyword), 400);
-    return () => clearTimeout(t);
-  }, [keyword]);
+  const [appliedKeyword, setAppliedKeyword] = useState(searchParams.get("q") || "");
   const [typeOrder, setTypeOrder] = useState(searchParams.get("typeOrder") || "0");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
