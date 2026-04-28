@@ -53,6 +53,8 @@ export const LocationAutocomplete = ({
   const [loading, setLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  // Bỏ qua effect Nominatim ngay sau khi user chọn 1 gợi ý (vì onChange đổi value).
+  const skipNextFetchRef = useRef(false);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -61,6 +63,11 @@ export const LocationAutocomplete = ({
       setItems([]);
       setIsOpen(false);
       setLoading(false);
+      return;
+    }
+
+    if (skipNextFetchRef.current) {
+      skipNextFetchRef.current = false;
       return;
     }
 
