@@ -86,6 +86,11 @@ const MapSearchPage = () => {
     searchParams.get("apartmentSizeTo") || "",
   );
   const [keyword, setKeyword] = useState(searchParams.get("q") || "");
+  const [debouncedKeyword, setDebouncedKeyword] = useState(keyword);
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedKeyword(keyword), 400);
+    return () => clearTimeout(t);
+  }, [keyword]);
   const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
 
   // Yêu cầu vị trí người dùng sớm để bias kết quả tìm kiếm
@@ -225,7 +230,7 @@ const MapSearchPage = () => {
       isHot: 0,
       typeOrder: 0,
     };
-    if (keyword) req.keyword = keyword;
+    if (debouncedKeyword) req.keyword = debouncedKeyword;
     if (provinceId) req.provinceId = provinceId;
     if (wardId) req.wardId = wardId;
     if (apartmentTypeUuid) req.apartmentTypeUuid = apartmentTypeUuid;
@@ -256,7 +261,7 @@ const MapSearchPage = () => {
   } = useInfiniteQuery({
     queryKey: [
       "map-advertisements",
-      keyword,
+      debouncedKeyword,
       provinceId,
       wardId,
       apartmentTypeUuid,
@@ -323,7 +328,7 @@ const MapSearchPage = () => {
   // Sync to URL
   useEffect(() => {
     const params = new URLSearchParams();
-    if (keyword) params.set("q", keyword);
+    if (debouncedKeyword) params.set("q", debouncedKeyword);
     if (provinceId) params.set("provinceId", provinceId);
     if (wardId) params.set("wardId", wardId);
     if (apartmentTypeUuid) params.set("apartmentTypeUuid", apartmentTypeUuid);
@@ -333,7 +338,7 @@ const MapSearchPage = () => {
     if (apartmentSizeTo) params.set("apartmentSizeTo", apartmentSizeTo);
     setSearchParams(params, { replace: true });
   }, [
-    keyword,
+    debouncedKeyword,
     provinceId,
     wardId,
     apartmentTypeUuid,
