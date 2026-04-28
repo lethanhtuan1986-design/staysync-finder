@@ -22,6 +22,12 @@ interface SearchOverlay {
   radiusKm: number;
 }
 
+interface LockToRadius {
+  centerLat: number;
+  centerLng: number;
+  radiusKm: number;
+}
+
 interface MapViewProps {
   locations?: MapLocationGroup[];
   hoveredId?: string | null;
@@ -31,7 +37,17 @@ interface MapViewProps {
   useGeolocation?: boolean;
   searchOverlay?: SearchOverlay | null;
   flyTo?: FlyToTarget | null;
+  lockToRadius?: LockToRadius | null;
 }
+
+const computeRadiusBounds = (centerLat: number, centerLng: number, radiusKm: number) => {
+  const latDelta = radiusKm / 111.32;
+  const lngDelta = radiusKm / (111.32 * Math.max(Math.cos((centerLat * Math.PI) / 180), 0.01));
+  return L.latLngBounds(
+    [centerLat - latDelta, centerLng - lngDelta],
+    [centerLat + latDelta, centerLng + lngDelta],
+  );
+};
 
 const parsePoint = (point: string): LatLngTuple | null => {
   try {
