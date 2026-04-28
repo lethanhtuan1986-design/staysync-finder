@@ -11,8 +11,12 @@ import {
 
 interface LocationAutocompleteProps {
   value: string;
+  /** Cập nhật text trong ô — KHÔNG trigger search. */
   onChange: (value: string) => void;
-  onSelect: (result: NominatimResult, bounds: GeoBounds) => void;
+  /** User chọn 1 gợi ý địa điểm từ Nominatim — search theo bbox. */
+  onSelectLocation: (result: NominatimResult, bounds: GeoBounds) => void;
+  /** User chọn mục "Tìm …" hoặc nhấn Enter — search theo từ khóa. */
+  onSubmitKeyword: (keyword: string) => void;
   enrichSuffix?: string;
   radiusKm?: number;
   placeholder?: string;
@@ -36,7 +40,8 @@ const NOMINATIM_DEBOUNCE_MS = 500;
 export const LocationAutocomplete = ({
   value,
   onChange,
-  onSelect,
+  onSelectLocation,
+  onSubmitKeyword,
   enrichSuffix = "",
   radiusKm = DEFAULT_RADIUS_KM,
   placeholder = "Tìm kiếm địa điểm...",
@@ -59,6 +64,9 @@ export const LocationAutocomplete = ({
       return;
     }
 
+    // Mở dropdown ngay để hiện mục "Tìm …" trong lúc Nominatim đang chạy.
+    setIsOpen(true);
+
     debounceRef.current = setTimeout(async () => {
       setLoading(true);
       const query = enrichSuffix ? `${value} ${enrichSuffix}`.trim() : value;
@@ -73,7 +81,6 @@ export const LocationAutocomplete = ({
         };
       });
       setItems(mapped);
-      setIsOpen(mapped.length > 0);
       setLoading(false);
     }, NOMINATIM_DEBOUNCE_MS);
 
@@ -95,22 +102,40 @@ export const LocationAutocomplete = ({
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const handleSelect = useCallback(
+  const handleSelectLocation = useCallback(
     (item: DropdownItem) => {
       onChange(item.main);
       setIsOpen(false);
       const bounds = nominatimResultToBounds(item.raw, radiusKm);
-      onSelect(item.raw, bounds);
+      onSelectLocation(item.raw, bounds);
       setItems([]);
     },
-    [onChange, onSelect, radiusKm],
+    [onChange, onSelectLocation, radiusKm],
   );
+
+  const handleSubmitKeyword = useCallback(() => {
+    const text = value.trim();
+    if (!text) return;
+    setIsOpen(false);
+    onSubmitKeyword(text);
+  }, [value, onSubmitKeyword]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSubmitKeyword();
+    } else if (e.key === "Escape") {
+      setIsOpen(false);
+    }
+  };
 
   const handleClear = () => {
     onChange("");
     setItems([]);
     setIsOpen(false);
   };
+
+  const trimmed = value.trim();
 
   return (
     <div ref={containerRef} className={cn("relative", className)}>
@@ -121,7 +146,8 @@ export const LocationAutocomplete = ({
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onFocus={() => items.length > 0 && setIsOpen(true)}
+        onFocus={() => trimmed && setIsOpen(true)}
+        onKeyDown={handleKeyDown}
         placeholder={placeholder}
         className={cn(
           "w-full pl-9 pr-9 h-11 rounded-xl bg-secondary/50 border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow",
@@ -145,38 +171,61 @@ export const LocationAutocomplete = ({
         </button>
       )}
 
-      {isOpen && (
+      {isOpen && trimmed && (
         <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-popover border border-border rounded-2xl shadow-xl max-h-80 overflow-y-auto animate-in fade-in-0 slide-in-from-top-1">
-          {items.length > 0 ? (
-            items.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => handleSelect(item)}
-                className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-accent focus:bg-accent focus:outline-none transition-colors first:rounded-t-2xl last:rounded-b-2xl"
-              >
-                <span className="shrink-0 mt-0.5 w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                  <MapPin size={14} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-medium text-foreground leading-snug truncate">
-                    {item.main}
-                  </span>
-                  {item.secondary && (
-                    <span className="block text-xs text-muted-foreground leading-snug truncate mt-0.5">
-                      {item.secondary}
-                    </span>
+          {/* Mục đầu: tìm theo từ khóa */}
+          <button
+            type="button"
+            onClick={handleSubmitKeyword}
+            className="w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-accent focus:bg-accent focus:outline-none transition-colors rounded-t-2xl"
+          >
+            <span className="shrink-0 mt-0.5 w-7 h-7 rounded-full bg-secondary text-muted-foreground flex items-center justify-center">
+              <Search size={14} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-medium text-foreground leading-snug truncate">
+                Tìm "{trimmed}"
+              </span>
+              <span className="block text-xs text-muted-foreground leading-snug truncate mt-0.5">
+                Tìm theo từ khóa
+              </span>
+            </span>
+          </button>
+
+          {items.length > 0 && (
+            <div className="border-t border-border">
+              {items.map((item, idx) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => handleSelectLocation(item)}
+                  className={cn(
+                    "w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-accent focus:bg-accent focus:outline-none transition-colors",
+                    idx === items.length - 1 && "rounded-b-2xl",
                   )}
-                </span>
-              </button>
-            ))
-          ) : (
-            !loading &&
-            value.trim() && (
-              <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-                Không tìm thấy địa điểm
-              </div>
-            )
+                >
+                  <span className="shrink-0 mt-0.5 w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                    <MapPin size={14} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-medium text-foreground leading-snug truncate">
+                      {item.main}
+                    </span>
+                    {item.secondary && (
+                      <span className="block text-xs text-muted-foreground leading-snug truncate mt-0.5">
+                        {item.secondary}
+                      </span>
+                    )}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {!loading && items.length === 0 && (
+            <div className="border-t border-border px-4 py-3 text-xs text-muted-foreground">
+              Không có địa điểm gợi ý
+            </div>
           )}
         </div>
       )}

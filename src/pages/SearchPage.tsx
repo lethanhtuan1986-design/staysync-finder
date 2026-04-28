@@ -54,12 +54,10 @@ const SearchPage = () => {
   const [priceTo, setPriceTo] = useState(searchParams.get("priceTo") || "");
   const [apartmentSizeFrom, setApartmentSizeFrom] = useState(searchParams.get("apartmentSizeFrom") || "");
   const [apartmentSizeTo, setApartmentSizeTo] = useState(searchParams.get("apartmentSizeTo") || "");
+  // `keyword` = text trong ô input, KHÔNG đi vào query.
+  // `appliedKeyword` = từ khóa đã được user submit (chọn mục "Tìm …" hoặc Enter).
   const [keyword, setKeyword] = useState(searchParams.get("q") || "");
-  const [debouncedKeyword, setDebouncedKeyword] = useState(keyword);
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedKeyword(keyword), 400);
-    return () => clearTimeout(t);
-  }, [keyword]);
+  const [appliedKeyword, setAppliedKeyword] = useState(searchParams.get("q") || "");
   const [typeOrder, setTypeOrder] = useState(searchParams.get("typeOrder") || "0");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
@@ -132,25 +130,20 @@ const SearchPage = () => {
     return parts.join(" ");
   }, [provinceId, wardId, provinces, wards, selectedProvinceName]);
 
-  const justSelectedRef = useRef(false);
   const handleLocationSelect = useCallback((result: any, _bounds: GeoBounds) => {
     const lat = parseFloat(result?.lat);
     const lng = parseFloat(result?.lon);
     if (Number.isFinite(lat) && Number.isFinite(lng)) {
-      justSelectedRef.current = true;
       setGeoCenter({ lat, lng });
+      // Tìm theo địa điểm → bỏ keyword cũ
+      setAppliedKeyword("");
     }
   }, []);
 
-  // Khi user gõ lại trong ô tìm kiếm: huỷ điểm đã chọn trước đó.
-  // Bỏ qua lần onChange phát sinh ngay sau khi user chọn 1 gợi ý.
-  const handleKeywordChange = useCallback((next: string) => {
-    setKeyword(next);
-    if (justSelectedRef.current) {
-      justSelectedRef.current = false;
-      return;
-    }
-    setGeoCenter((prev) => (prev ? null : prev));
+  // Khi user submit từ khóa (chọn mục "Tìm …" hoặc Enter): tìm theo text, bỏ điểm cũ.
+  const handleSubmitKeyword = useCallback((text: string) => {
+    setAppliedKeyword(text);
+    setGeoCenter(null);
   }, []);
 
   const buildListRequest = (pageParam: number): GetListAdvertisementRequest => {
@@ -161,7 +154,7 @@ const SearchPage = () => {
       isHot: 0,
       typeOrder: Number(typeOrder),
     };
-    if (debouncedKeyword) req.keyword = debouncedKeyword;
+    if (appliedKeyword) req.keyword = appliedKeyword;
     if (provinceId) req.provinceId = provinceId;
     if (wardId) req.wardId = wardId;
     if (apartmentTypeUuid) req.apartmentTypeUuid = apartmentTypeUuid;
@@ -193,7 +186,7 @@ const SearchPage = () => {
   } = useInfiniteQuery({
     queryKey: [
       "advertisements-list",
-      debouncedKeyword,
+      appliedKeyword,
       provinceId,
       wardId,
       apartmentTypeUuid,
@@ -246,7 +239,7 @@ const SearchPage = () => {
   // Sync state to URL
   useEffect(() => {
     const params = new URLSearchParams();
-    if (debouncedKeyword) params.set("q", debouncedKeyword);
+    if (appliedKeyword) params.set("q", appliedKeyword);
     if (provinceId) params.set("provinceId", provinceId);
     if (wardId) params.set("wardId", wardId);
     if (apartmentTypeUuid) params.set("apartmentTypeUuid", apartmentTypeUuid);
@@ -263,7 +256,7 @@ const SearchPage = () => {
     }
     setSearchParams(params, { replace: true });
   }, [
-    debouncedKeyword,
+    appliedKeyword,
     provinceId,
     wardId,
     apartmentTypeUuid,
@@ -331,8 +324,10 @@ const SearchPage = () => {
             {/* Search input with autocomplete */}
             <LocationAutocomplete
               value={keyword}
-              onChange={handleKeywordChange}
-              onSelect={handleLocationSelect}
+              onChange={setKeyword}
+              onSelectLocation={handleLocationSelect}
+              onSubmitKeyword={handleSubmitKeyword}
+              
               enrichSuffix={enrichSuffix}
               radiusKm={radiusKm}
               placeholder={t("search.keywordPlaceholder")}
@@ -402,8 +397,10 @@ const SearchPage = () => {
             {/* Row 1: Search input full width with autocomplete */}
             <LocationAutocomplete
               value={keyword}
-              onChange={handleKeywordChange}
-              onSelect={handleLocationSelect}
+              onChange={setKeyword}
+              onSelectLocation={handleLocationSelect}
+              onSubmitKeyword={handleSubmitKeyword}
+              
               enrichSuffix={enrichSuffix}
               radiusKm={radiusKm}
               placeholder={t("search.keywordPlaceholder")}
