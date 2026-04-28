@@ -9,8 +9,9 @@ import { MapView } from "@/components/MapView";
 import { Skeleton } from "@/components/ui/skeleton";
 import { filterPrices, filterApartmentSizes } from "@/lib/filter-options";
 import advertisementService, {
-  GetListAdvertisementRequest,
+  GetAdvertisementsForMapRequest,
   AdvertisementData,
+  MapLocationGroup,
 } from "@/services/advertisement.service";
 import provinceService, { ProvinceItem, WardItem, formatLocationLabel } from "@/services/province.service";
 import apartmentTypeService, {
@@ -216,8 +217,8 @@ const MapSearchPage = () => {
     };
   }, [centerPoint, radiusKm]);
 
-  const buildListRequest = (pageParam: number): GetListAdvertisementRequest => {
-    const req: GetListAdvertisementRequest = {
+  const buildMapRequest = (pageParam: number): GetAdvertisementsForMapRequest => {
+    const req: GetAdvertisementsForMapRequest = {
       isPaging: 1,
       page: pageParam,
       pageSize: PAGE_SIZE,
@@ -249,7 +250,7 @@ const MapSearchPage = () => {
     isFetchingNextPage,
   } = useInfiniteQuery({
     queryKey: [
-      "map-advertisements-list",
+      "map-advertisements",
       keyword,
       provinceId,
       wardId,
@@ -262,44 +263,40 @@ const MapSearchPage = () => {
       radiusBounds?.swLat,
     ],
     queryFn: ({ pageParam }) =>
-      httpRequest({ http: advertisementService.getListPaged(buildListRequest(pageParam as number)) }),
+      httpRequest({ http: advertisementService.getForMap(buildMapRequest(pageParam as number)) }),
     initialPageParam: 1,
+    // getForMap trả về MapLocationGroup[]; dùng độ dài trang để xác định còn trang sau.
     getNextPageParam: (lastPage: any, allPages) => {
       const items = lastPage?.items ?? [];
       return items.length >= PAGE_SIZE ? allPages.length + 1 : undefined;
     },
   });
 
-  const visibleAds = useMemo<AdvertisementData[]>(
-    () => (listData?.pages ?? []).flatMap((p: any) => p?.items ?? []),
-    [listData],
-  );
-
-  // Group ads by coordinate to build map markers
-  const mapLocations = useMemo(() => {
-    const groups = new Map<string, { point: string; longitude: number; address: string; totalAds: number; ads: AdvertisementData[] }>();
-    visibleAds.forEach((ad: any) => {
-      const lat = Number(ad?.apartmentUu?.latitude ?? ad?.latitude);
-      const lng = Number(ad?.apartmentUu?.longitude ?? ad?.longitude);
-      if (!isFinite(lat) || !isFinite(lng) || (lat === 0 && lng === 0)) return;
-      const key = `${lat.toFixed(5)},${lng.toFixed(5)}`;
-      const existing = groups.get(key);
-      const address = ad?.apartmentUu?.address || ad?.address || "";
-      if (existing) {
-        existing.ads.push(ad);
-        existing.totalAds++;
-      } else {
-        groups.set(key, {
-          point: JSON.stringify([lat, lng]),
-          longitude: lng,
-          address,
-          totalAds: 1,
-          ads: [ad],
-        });
-      }
+  // Gộp các trang location group lại; nếu trùng toạ độ giữa các trang thì merge ads.
+  const mapLocations = useMemo<MapLocationGroup[]>(() => {
+    const merged = new Map<string, MapLocationGroup>();
+    (listData?.pages ?? []).forEach((page: any) => {
+      const groups: MapLocationGroup[] = page?.items ?? [];
+      groups.forEach((g) => {
+        const existing = merged.get(g.point);
+        if (existing) {
+          const seen = new Set(existing.ads.map((a) => a.uuid));
+          g.ads.forEach((a) => {
+            if (!seen.has(a.uuid)) existing.ads.push(a);
+          });
+          existing.totalAds = existing.ads.length;
+        } else {
+          merged.set(g.point, { ...g, ads: [...g.ads] });
+        }
+      });
     });
-    return Array.from(groups.values());
-  }, [visibleAds]);
+    return Array.from(merged.values());
+  }, [listData]);
+
+  const visibleAds = useMemo<AdvertisementData[]>(
+    () => mapLocations.flatMap((loc) => loc.ads),
+    [mapLocations],
+  );
 
   // Infinite scroll sentinel
   useEffect(() => {
