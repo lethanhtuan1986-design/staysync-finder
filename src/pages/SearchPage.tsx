@@ -6,6 +6,7 @@ import { Navbar } from "@/components/Navbar";
 import { AdvertisementCard } from "@/components/AdvertisementCard";
 import { Footer } from "@/components/Footer";
 import { FloatingCallButton } from "@/components/FloatingCallButton";
+import { BackToTopButton } from "@/components/BackToTopButton";
 import { filterPrices, filterApartmentSizes } from "@/lib/filter-options";
 import advertisementService, { GetListAdvertisementRequest, AdvertisementData } from "@/services/advertisement.service";
 import provinceService, { ProvinceItem, WardItem, formatLocationLabel } from "@/services/province.service";
@@ -636,6 +637,7 @@ const SearchPage = () => {
         </div>
       </div>
 
+      <BackToTopButton />
       <FloatingCallButton />
       <Footer />
     </div>
