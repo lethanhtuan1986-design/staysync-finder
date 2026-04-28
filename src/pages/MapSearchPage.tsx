@@ -64,14 +64,8 @@ const MapSearchPage = () => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [mobileShowList, setMobileShowList] = useState(false);
 
-  // Map bounding box state (from viewport)
-  const [bounds, setBounds] = useState<{
-    neLat: number;
-    neLng: number;
-    swLat: number;
-    swLng: number;
-  } | null>(null);
-  const [debouncedBounds, setDebouncedBounds] = useState(bounds);
+  const PAGE_SIZE = PAGE_SIZE_DEFAULT;
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Filter states from URL
   // Province driven by global selected province
