@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { RADIUS_OPTIONS, DEFAULT_RADIUS_KM, NominatimResult, GeoBounds, getUserLocation } from "@/lib/geocoding";
-import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { SEO } from "@/components/SEO";
 import { Navbar } from "@/components/Navbar";
 import { AdvertisementCard } from "@/components/AdvertisementCard";
@@ -173,24 +173,35 @@ const MapSearchPage = () => {
     setCenterPoint({ lat: bounds.centerLat, lng: bounds.centerLng });
   }, []);
 
-  // Compute bounding box (NE/SW) for radius around centerPoint
-  const radiusBounds = useMemo(() => {
-    if (!centerPoint) return null;
-    const latDelta = radiusKm / 111.32;
-    const lngDelta = radiusKm / (111.32 * Math.max(Math.cos((centerPoint.lat * Math.PI) / 180), 0.01));
-    return {
-      neLat: centerPoint.lat + latDelta,
-      neLng: centerPoint.lng + lngDelta,
-      swLat: centerPoint.lat - latDelta,
-      swLng: centerPoint.lng - lngDelta,
-    };
-  }, [centerPoint, radiusKm]);
+  // Viewport bounds (NE/SW) cập nhật từ Map; debounce 300ms
+  const [viewportBounds, setViewportBounds] = useState<{
+    neLat: number;
+    neLng: number;
+    swLat: number;
+    swLng: number;
+  } | null>(null);
+  const boundsDebounceRef = useRef<number | null>(null);
+  const handleBoundsChange = useCallback(
+    (b: { neLat: number; neLng: number; swLat: number; swLng: number }) => {
+      if (boundsDebounceRef.current) window.clearTimeout(boundsDebounceRef.current);
+      boundsDebounceRef.current = window.setTimeout(() => {
+        setViewportBounds(b);
+      }, 300);
+    },
+    [],
+  );
+  useEffect(
+    () => () => {
+      if (boundsDebounceRef.current) window.clearTimeout(boundsDebounceRef.current);
+    },
+    [],
+  );
 
-  const buildMapRequest = (pageParam: number): GetAdvertisementsForMapRequest => {
+  const buildMapRequest = (): GetAdvertisementsForMapRequest => {
     const req: GetAdvertisementsForMapRequest = {
       isPaging: 0,
-      page: pageParam,
-      pageSize: PAGE_SIZE,
+      page: 1,
+      pageSize: 500,
       isHot: 0,
       typeOrder: 0,
     };
@@ -202,11 +213,11 @@ const MapSearchPage = () => {
     if (priceTo) req.priceTo = Number(priceTo);
     if (apartmentSizeFrom) req.apartmentSizeFrom = Number(apartmentSizeFrom);
     if (apartmentSizeTo) req.apartmentSizeTo = Number(apartmentSizeTo);
-    if (radiusBounds) {
-      req.neLat = radiusBounds.neLat;
-      req.neLng = radiusBounds.neLng;
-      req.swLat = radiusBounds.swLat;
-      req.swLng = radiusBounds.swLng;
+    if (viewportBounds) {
+      req.neLat = viewportBounds.neLat;
+      req.neLng = viewportBounds.neLng;
+      req.swLat = viewportBounds.swLat;
+      req.swLng = viewportBounds.swLng;
     } else {
       req.neLat = null;
       req.neLng = null;
@@ -216,13 +227,7 @@ const MapSearchPage = () => {
     return req;
   };
 
-  const {
-    data: listData,
-    isLoading: mapLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useInfiniteQuery({
+  const { data: mapData, isLoading: mapLoading, isFetching: mapFetching } = useQuery({
     queryKey: [
       "map-advertisements",
       debouncedKeyword,
@@ -233,58 +238,45 @@ const MapSearchPage = () => {
       priceTo,
       apartmentSizeFrom,
       apartmentSizeTo,
-      radiusBounds?.neLat,
-      radiusBounds?.swLat,
+      viewportBounds?.neLat,
+      viewportBounds?.neLng,
+      viewportBounds?.swLat,
+      viewportBounds?.swLng,
     ],
-    queryFn: ({ pageParam }) =>
-      httpRequest({ http: advertisementService.getForMap(buildMapRequest(pageParam as number)) }),
-    initialPageParam: 1,
-    // getForMap trả về MapLocationGroup[]; dùng độ dài trang để xác định còn trang sau.
-    getNextPageParam: (lastPage: any, allPages) => {
-      const items = lastPage?.items ?? [];
-      return items.length >= PAGE_SIZE ? allPages.length + 1 : undefined;
-    },
-  });
+    queryFn: () => httpRequest({ http: advertisementService.getForMap(buildMapRequest()) }),
+    keepPreviousData: true,
+  } as any);
 
-  // Gộp các trang location group lại; nếu trùng toạ độ giữa các trang thì merge ads.
-  const mapLocations = useMemo<MapLocationGroup[]>(() => {
-    const merged = new Map<string, MapLocationGroup>();
-    (listData?.pages ?? []).forEach((page: any) => {
-      const groups: MapLocationGroup[] = page?.items ?? [];
-      groups.forEach((g) => {
-        const existing = merged.get(g.point);
-        if (existing) {
-          const seen = new Set(existing.ads.map((a) => a.uuid));
-          g.ads.forEach((a) => {
-            if (!seen.has(a.uuid)) existing.ads.push(a);
-          });
-          existing.totalAds = existing.ads.length;
-        } else {
-          merged.set(g.point, { ...g, ads: [...g.ads] });
-        }
-      });
-    });
-    return Array.from(merged.values());
-  }, [listData]);
+  const mapLocations = useMemo<MapLocationGroup[]>(() => (mapData as any)?.items ?? [], [mapData]);
+  const allAds = useMemo<AdvertisementData[]>(() => mapLocations.flatMap((loc) => loc.ads), [mapLocations]);
 
-  const visibleAds = useMemo<AdvertisementData[]>(() => mapLocations.flatMap((loc) => loc.ads), [mapLocations]);
+  // Client-side infinite scroll cho danh sách bên trái
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [allAds]);
+  const visibleAds = useMemo(() => allAds.slice(0, visibleCount), [allAds, visibleCount]);
+  const hasMore = visibleCount < allAds.length;
 
-  // Infinite scroll sentinel
   useEffect(() => {
     const node = loadMoreRef.current;
     if (!node) return;
     const observer = new IntersectionObserver(
       (entries) => {
-        const entry = entries[0];
-        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage && !mapLoading) {
-          fetchNextPage();
+        if (entries[0].isIntersecting && hasMore) {
+          setVisibleCount((c) => Math.min(c + PAGE_SIZE, allAds.length));
         }
       },
-      { rootMargin: "800px 0px" },
+      { rootMargin: "400px 0px" },
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, mapLoading, fetchNextPage, visibleAds.length]);
+  }, [hasMore, allAds.length]);
+
+  const isFetchingNextPage = false;
+  const hasNextPage = hasMore;
+  const fetchNextPage = () => setVisibleCount((c) => Math.min(c + PAGE_SIZE, allAds.length));
+  void fetchNextPage; // (giữ để rõ ý đồ; sentinel bên dưới đã trigger trực tiếp)
 
   // Sync to URL
   useEffect(() => {
@@ -601,7 +593,7 @@ const MapSearchPage = () => {
             onMarkerClick={(id) => navigate(`/advertisement/${id}`)}
             flyTo={mapCenter}
             lockToRadius={lockToRadius}
-            
+            onBoundsChange={handleBoundsChange}
           />
 
           {/* Mobile: toggle list button */}
