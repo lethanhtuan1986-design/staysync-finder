@@ -130,25 +130,20 @@ const SearchPage = () => {
     return parts.join(" ");
   }, [provinceId, wardId, provinces, wards, selectedProvinceName]);
 
-  const justSelectedRef = useRef(false);
   const handleLocationSelect = useCallback((result: any, _bounds: GeoBounds) => {
     const lat = parseFloat(result?.lat);
     const lng = parseFloat(result?.lon);
     if (Number.isFinite(lat) && Number.isFinite(lng)) {
-      justSelectedRef.current = true;
       setGeoCenter({ lat, lng });
+      // Tìm theo địa điểm → bỏ keyword cũ
+      setAppliedKeyword("");
     }
   }, []);
 
-  // Khi user gõ lại trong ô tìm kiếm: huỷ điểm đã chọn trước đó.
-  // Bỏ qua lần onChange phát sinh ngay sau khi user chọn 1 gợi ý.
-  const handleKeywordChange = useCallback((next: string) => {
-    setKeyword(next);
-    if (justSelectedRef.current) {
-      justSelectedRef.current = false;
-      return;
-    }
-    setGeoCenter((prev) => (prev ? null : prev));
+  // Khi user submit từ khóa (chọn mục "Tìm …" hoặc Enter): tìm theo text, bỏ điểm cũ.
+  const handleSubmitKeyword = useCallback((text: string) => {
+    setAppliedKeyword(text);
+    setGeoCenter(null);
   }, []);
 
   const buildListRequest = (pageParam: number): GetListAdvertisementRequest => {
