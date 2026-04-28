@@ -238,6 +238,12 @@ const SearchPage = () => {
     if (apartmentSizeFrom) params.set("apartmentSizeFrom", apartmentSizeFrom);
     if (apartmentSizeTo) params.set("apartmentSizeTo", apartmentSizeTo);
     if (typeOrder !== "0") params.set("typeOrder", typeOrder);
+    if (geoBounds) {
+      params.set("neLat", String(geoBounds.neLat));
+      params.set("neLng", String(geoBounds.neLng));
+      params.set("swLat", String(geoBounds.swLat));
+      params.set("swLng", String(geoBounds.swLng));
+    }
     setSearchParams(params, { replace: true });
   }, [
     keyword,
@@ -249,6 +255,7 @@ const SearchPage = () => {
     apartmentSizeFrom,
     apartmentSizeTo,
     typeOrder,
+    geoBounds,
     setSearchParams,
   ]);
 
