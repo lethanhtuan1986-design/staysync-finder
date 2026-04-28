@@ -350,7 +350,7 @@ const SearchPage = () => {
             {/* Result count */}
             <div className="flex items-center gap-2 ml-auto shrink-0">
               <p className="text-sm text-foreground font-medium whitespace-nowrap">
-                {advertisements.length} {t("search.found")}{hasNextPage ? "+" : ""}
+                {totalCount} {t("search.found")}
               </p>
               {loading && <Loader2 size={16} className="animate-spin text-muted-foreground" />}
             </div>
