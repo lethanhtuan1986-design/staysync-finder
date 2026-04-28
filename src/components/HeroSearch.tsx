@@ -105,7 +105,7 @@ export const HeroSearch = () => {
       }),
   });
 
-  const handleSearch = () => {
+  const handleSearch = (boundsOverride?: GeoBounds | null) => {
     const params = new URLSearchParams();
     if (searchKeyword.trim()) params.set("q", searchKeyword.trim());
     if (provinceId) params.set("provinceId", provinceId);
@@ -124,7 +124,28 @@ export const HeroSearch = () => {
       if (selectedSize.valueTo) params.set("apartmentSizeTo", String(selectedSize.valueTo));
     }
 
+    // Truyền bounding box khi user đã chọn 1 địa điểm từ map/autocomplete.
+    const bounds = boundsOverride !== undefined ? boundsOverride : geoBounds;
+    if (bounds) {
+      params.set("neLat", String(bounds.neLat));
+      params.set("neLng", String(bounds.neLng));
+      params.set("swLat", String(bounds.swLat));
+      params.set("swLng", String(bounds.swLng));
+    }
+
     navigate(`/search?${params.toString()}`);
+  };
+
+  // User gõ lại → huỷ bounds đã chọn (chỉ truyền lat/lng khi thực sự chọn gợi ý).
+  const handleKeywordChange = (next: string) => {
+    setSearchKeyword(next);
+    if (geoBounds) setGeoBounds(null);
+  };
+
+  const handleLocationSelect = (_result: any, bounds: GeoBounds) => {
+    setGeoBounds(bounds);
+    // Tự động tìm ngay khi chọn gợi ý, đồng thời truyền bounds vừa chọn.
+    handleSearch(bounds);
   };
 
   const advancedFilterCount = [wardId, priceUuid, sizeUuid, apartmentTypeUuid].filter(Boolean).length;
