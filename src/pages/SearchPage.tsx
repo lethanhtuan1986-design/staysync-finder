@@ -324,8 +324,10 @@ const SearchPage = () => {
             {/* Search input with autocomplete */}
             <LocationAutocomplete
               value={keyword}
-              onChange={handleKeywordChange}
-              onSelect={handleLocationSelect}
+              onChange={setKeyword}
+              onSelectLocation={handleLocationSelect}
+              onSubmitKeyword={handleSubmitKeyword}
+              
               enrichSuffix={enrichSuffix}
               radiusKm={radiusKm}
               placeholder={t("search.keywordPlaceholder")}
@@ -395,8 +397,10 @@ const SearchPage = () => {
             {/* Row 1: Search input full width with autocomplete */}
             <LocationAutocomplete
               value={keyword}
-              onChange={handleKeywordChange}
-              onSelect={handleLocationSelect}
+              onChange={setKeyword}
+              onSelectLocation={handleLocationSelect}
+              onSubmitKeyword={handleSubmitKeyword}
+              
               enrichSuffix={enrichSuffix}
               radiusKm={radiusKm}
               placeholder={t("search.keywordPlaceholder")}
