@@ -99,7 +99,9 @@
     "filter": "Bộ lọc",
     "noResultMapHint": "Hãy di chuyển bản đồ hoặc thay đổi bộ lọc",
     "showList": "Xem danh sách",
-    "showMap": "Xem bản đồ"
+    "showMap": "Xem bản đồ",
+    "loadingMore": "Đang tải thêm...",
+    "endOfResults": "Đã hiển thị tất cả kết quả"
   },
   "schedule": {
     "title": "Đặt lịch xem",

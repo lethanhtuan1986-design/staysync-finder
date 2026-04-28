@@ -92,7 +92,9 @@
     "filter": "フィルター",
     "noResultMapHint": "地図を移動するかフィルターを変更してください",
     "showList": "リスト表示",
-    "showMap": "地図表示"
+    "showMap": "地図表示",
+    "loadingMore": "さらに読み込み中...",
+    "endOfResults": "すべての結果を表示しました"
   },
   "schedule": {
     "title": "内見予約",
