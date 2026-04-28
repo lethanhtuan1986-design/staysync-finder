@@ -14,29 +14,15 @@ import advertisementService, {
   MapLocationGroup,
 } from "@/services/advertisement.service";
 import provinceService, { ProvinceItem, WardItem, formatLocationLabel } from "@/services/province.service";
-import apartmentTypeService, {
-  ApartmentTypeItem,
-} from "@/services/apartmentType.service";
+import apartmentTypeService, { ApartmentTypeItem } from "@/services/apartmentType.service";
 import { httpRequest } from "@/services/index";
 import { PAGE_SIZE_DEFAULT } from "@/lib/pagination";
 import { useTranslation } from "react-i18next";
 import { Search, SlidersHorizontal, Loader2, X, ArrowLeft } from "lucide-react";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import { cn } from "@/lib/utils";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSelectedProvince } from "@/hooks/useSelectedProvince";
 import { getProvinceBias } from "@/lib/province-geo";
@@ -46,8 +32,7 @@ const parsePoint = (point: string): [number, number] | null => {
     const parsed = JSON.parse(point);
     if (Array.isArray(parsed) && parsed.length >= 2) {
       const [lat, lng] = parsed.map(Number);
-      if (isFinite(lat) && isFinite(lng) && !(lat === 0 && lng === 0))
-        return [lat, lng];
+      if (isFinite(lat) && isFinite(lng) && !(lat === 0 && lng === 0)) return [lat, lng];
     }
   } catch {}
   return null;
@@ -72,19 +57,11 @@ const MapSearchPage = () => {
   // Province driven by global selected province
   const provinceId = selectedProvinceCode || "";
   const [wardId, setWardId] = useState(searchParams.get("wardId") || "");
-  const [apartmentTypeUuid, setApartmentTypeUuid] = useState(
-    searchParams.get("apartmentTypeUuid") || "",
-  );
-  const [priceFrom, setPriceFrom] = useState(
-    searchParams.get("priceFrom") || "",
-  );
+  const [apartmentTypeUuid, setApartmentTypeUuid] = useState(searchParams.get("apartmentTypeUuid") || "");
+  const [priceFrom, setPriceFrom] = useState(searchParams.get("priceFrom") || "");
   const [priceTo, setPriceTo] = useState(searchParams.get("priceTo") || "");
-  const [apartmentSizeFrom, setApartmentSizeFrom] = useState(
-    searchParams.get("apartmentSizeFrom") || "",
-  );
-  const [apartmentSizeTo, setApartmentSizeTo] = useState(
-    searchParams.get("apartmentSizeTo") || "",
-  );
+  const [apartmentSizeFrom, setApartmentSizeFrom] = useState(searchParams.get("apartmentSizeFrom") || "");
+  const [apartmentSizeTo, setApartmentSizeTo] = useState(searchParams.get("apartmentSizeTo") || "");
   const [keyword, setKeyword] = useState(searchParams.get("q") || "");
   const [debouncedKeyword, setDebouncedKeyword] = useState(keyword);
   useEffect(() => {
@@ -97,7 +74,6 @@ const MapSearchPage = () => {
   useEffect(() => {
     getUserLocation().catch(() => {});
   }, []);
-
 
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number; zoom: number; label?: string } | null>(null);
   const [centerPoint, setCenterPoint] = useState<{ lat: number; lng: number } | null>(null);
@@ -124,24 +100,15 @@ const MapSearchPage = () => {
   }, [bias?.lat, bias?.lng]);
 
   const lockToRadius = useMemo(
-    () =>
-      centerPoint
-        ? { centerLat: centerPoint.lat, centerLng: centerPoint.lng, radiusKm }
-        : null,
+    () => (centerPoint ? { centerLat: centerPoint.lat, centerLng: centerPoint.lng, radiusKm } : null),
     [centerPoint, radiusKm],
   );
 
   const selectedPriceUuid =
-    filterPrices.find(
-      (fp) =>
-        String(fp.value || "") === priceFrom &&
-        String(fp.valueTo || "") === priceTo,
-    )?.uuid || "";
+    filterPrices.find((fp) => String(fp.value || "") === priceFrom && String(fp.valueTo || "") === priceTo)?.uuid || "";
   const selectedSizeUuid =
     filterApartmentSizes.find(
-      (fs) =>
-        String(fs.value || "") === apartmentSizeFrom &&
-        String(fs.valueTo || "") === apartmentSizeTo,
+      (fs) => String(fs.value || "") === apartmentSizeFrom && String(fs.valueTo || "") === apartmentSizeTo,
     )?.uuid || "";
 
   // API data
@@ -200,14 +167,11 @@ const MapSearchPage = () => {
   }, [provinceId, wardId, provinces, wards, selectedProvinceName]);
 
   // Handle autocomplete selection: pan map + update search overlay
-  const handleLocationSelect = useCallback(
-    (result: NominatimResult, bounds: GeoBounds) => {
-      const label = result.display_name;
-      setMapCenter({ lat: bounds.centerLat, lng: bounds.centerLng, zoom: 16, label });
-      setCenterPoint({ lat: bounds.centerLat, lng: bounds.centerLng });
-    },
-    [],
-  );
+  const handleLocationSelect = useCallback((result: NominatimResult, bounds: GeoBounds) => {
+    const label = result.display_name;
+    setMapCenter({ lat: bounds.centerLat, lng: bounds.centerLng, zoom: 16, label });
+    setCenterPoint({ lat: bounds.centerLat, lng: bounds.centerLng });
+  }, []);
 
   // Compute bounding box (NE/SW) for radius around centerPoint
   const radiusBounds = useMemo(() => {
@@ -224,7 +188,7 @@ const MapSearchPage = () => {
 
   const buildMapRequest = (pageParam: number): GetAdvertisementsForMapRequest => {
     const req: GetAdvertisementsForMapRequest = {
-      isPaging: 1,
+      isPaging: 0,
       page: pageParam,
       pageSize: PAGE_SIZE,
       isHot: 0,
@@ -303,10 +267,7 @@ const MapSearchPage = () => {
     return Array.from(merged.values());
   }, [listData]);
 
-  const visibleAds = useMemo<AdvertisementData[]>(
-    () => mapLocations.flatMap((loc) => loc.ads),
-    [mapLocations],
-  );
+  const visibleAds = useMemo<AdvertisementData[]>(() => mapLocations.flatMap((loc) => loc.ads), [mapLocations]);
 
   // Infinite scroll sentinel
   useEffect(() => {
@@ -375,11 +336,7 @@ const MapSearchPage = () => {
     }
   };
 
-  const activeFilterCount = [
-    apartmentTypeUuid,
-    selectedPriceUuid,
-    selectedSizeUuid,
-  ].filter(Boolean).length;
+  const activeFilterCount = [apartmentTypeUuid, selectedPriceUuid, selectedSizeUuid].filter(Boolean).length;
 
   const filterContent = (
     <div className="space-y-5 p-1">
@@ -412,11 +369,7 @@ const MapSearchPage = () => {
           disabled={!provinceId}
         >
           <SelectTrigger className="w-full">
-            <SelectValue
-              placeholder={
-                !provinceId ? t("hero.selectAreaFirst") : t("search.all")
-              }
-            />
+            <SelectValue placeholder={!provinceId ? t("hero.selectAreaFirst") : t("search.all")} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__all__">{t("search.all")}</SelectItem>
@@ -439,11 +392,7 @@ const MapSearchPage = () => {
             {apartmentTypes.map((at) => (
               <button
                 key={at.uuid}
-                onClick={() =>
-                  setApartmentTypeUuid((prev) =>
-                    prev === at.uuid ? "" : at.uuid,
-                  )
-                }
+                onClick={() => setApartmentTypeUuid((prev) => (prev === at.uuid ? "" : at.uuid))}
                 className={cn(
                   "px-3 py-2 rounded-lg border text-sm text-left transition-colors",
                   apartmentTypeUuid === at.uuid
@@ -506,9 +455,7 @@ const MapSearchPage = () => {
 
       {/* Radius */}
       <div>
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-          Bán kính tìm kiếm
-        </p>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Bán kính tìm kiếm</p>
         <div className="flex flex-col gap-1.5">
           {RADIUS_OPTIONS.map((r) => (
             <button
@@ -544,11 +491,7 @@ const MapSearchPage = () => {
               ? "w-full fixed inset-x-0 top-16 bottom-[4rem] z-[1100] transition-transform duration-300"
               : "w-[380px] shrink-0",
           )}
-          style={
-            isMobile
-              ? { transform: mobileShowList ? "translateX(0)" : "translateX(-100%)" }
-              : undefined
-          }
+          style={isMobile ? { transform: mobileShowList ? "translateX(0)" : "translateX(-100%)" } : undefined}
         >
           {/* Header */}
           <div className="p-3 border-b border-border flex items-center gap-2">
@@ -608,11 +551,7 @@ const MapSearchPage = () => {
               </div>
             )}
             {visibleAds.map((ad, i) => (
-              <div
-                key={ad.uuid}
-                onMouseEnter={() => setHoveredId(ad.uuid)}
-                onMouseLeave={() => setHoveredId(null)}
-              >
+              <div key={ad.uuid} onMouseEnter={() => setHoveredId(ad.uuid)} onMouseLeave={() => setHoveredId(null)}>
                 <AdvertisementCard data={ad} index={i} priority={i < 4} />
               </div>
             ))}
@@ -632,12 +571,8 @@ const MapSearchPage = () => {
             {!mapLoading && visibleAds.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Search size={32} className="text-muted-foreground mb-3" />
-                <p className="text-sm font-medium text-foreground">
-                  {t("search.noResult")}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {t("search.noResultMapHint")}
-                </p>
+                <p className="text-sm font-medium text-foreground">{t("search.noResult")}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t("search.noResultMapHint")}</p>
               </div>
             )}
           </div>
@@ -664,7 +599,6 @@ const MapSearchPage = () => {
             hoveredId={hoveredId}
             loading={mapLoading && mapLocations.length === 0}
             onMarkerClick={(id) => navigate(`/advertisement/${id}`)}
-            
             flyTo={mapCenter}
             lockToRadius={lockToRadius}
             searchOverlay={lockToRadius}
