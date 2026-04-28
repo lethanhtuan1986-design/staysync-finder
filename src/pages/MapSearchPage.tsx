@@ -103,6 +103,28 @@ const MapSearchPage = () => {
   }, [bounds]);
 
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number; zoom: number; label?: string } | null>(null);
+  const [centerPoint, setCenterPoint] = useState<{ lat: number; lng: number } | null>(null);
+
+  // Init center from user location on first load
+  useEffect(() => {
+    if (centerPoint) return;
+    getUserLocation()
+      .then((loc) => {
+        if (loc && isFinite(loc.lat) && isFinite(loc.lng)) {
+          setCenterPoint({ lat: loc.lat, lng: loc.lng });
+        }
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const lockToRadius = useMemo(
+    () =>
+      centerPoint
+        ? { centerLat: centerPoint.lat, centerLng: centerPoint.lng, radiusKm }
+        : null,
+    [centerPoint, radiusKm],
+  );
 
   const selectedPriceUuid =
     filterPrices.find(
