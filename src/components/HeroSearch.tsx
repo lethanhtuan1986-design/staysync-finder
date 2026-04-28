@@ -195,7 +195,7 @@ export const HeroSearch = () => {
             )}
           </button>
           <button
-            onClick={handleSearch}
+            onClick={() => handleSearch()}
             className={cn(
               "bg-primary hover:bg-primary/90 text-primary-foreground h-11 rounded-xl font-medium transition-all active:scale-95 flex items-center justify-center",
               isMobile ? "w-11" : "gap-2 whitespace-nowrap px-6"
