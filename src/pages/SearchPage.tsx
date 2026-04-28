@@ -132,15 +132,19 @@ const SearchPage = () => {
     return parts.join(" ");
   }, [provinceId, wardId, provinces, wards, selectedProvinceName]);
 
-  const handleLocationSelect = useCallback((_result: any, bounds: GeoBounds) => {
-    setGeoBounds(bounds);
+  const handleLocationSelect = useCallback((result: any, _bounds: GeoBounds) => {
+    const lat = parseFloat(result?.lat);
+    const lng = parseFloat(result?.lon);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      setGeoCenter({ lat, lng });
+    }
   }, []);
 
-  // Khi user gõ lại trong ô tìm kiếm: huỷ geoBounds đã chọn trước đó.
+  // Khi user gõ lại trong ô tìm kiếm: huỷ điểm đã chọn trước đó.
   // lat/lng chỉ được truyền lên khi user thực sự chọn 1 gợi ý từ dropdown.
   const handleKeywordChange = useCallback((next: string) => {
     setKeyword(next);
-    setGeoBounds((prev) => (prev ? null : prev));
+    setGeoCenter((prev) => (prev ? null : prev));
   }, []);
 
   const buildListRequest = (pageParam: number): GetListAdvertisementRequest => {
