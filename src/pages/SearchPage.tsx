@@ -333,7 +333,7 @@ const SearchPage = () => {
             {/* Search input with autocomplete */}
             <LocationAutocomplete
               value={keyword}
-              onChange={setKeyword}
+              onChange={handleKeywordChange}
               onSelectLocation={handleLocationSelect}
               onSubmitKeyword={handleSubmitKeyword}
               
@@ -406,7 +406,7 @@ const SearchPage = () => {
             {/* Row 1: Search input full width with autocomplete */}
             <LocationAutocomplete
               value={keyword}
-              onChange={setKeyword}
+              onChange={handleKeywordChange}
               onSelectLocation={handleLocationSelect}
               onSubmitKeyword={handleSubmitKeyword}
               
