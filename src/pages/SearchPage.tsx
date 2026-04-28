@@ -146,6 +146,15 @@ const SearchPage = () => {
     setGeoCenter(null);
   }, []);
 
+  // Cập nhật text trong ô; nếu user xoá trắng → reset filter để load lại danh sách mặc định.
+  const handleKeywordChange = useCallback((next: string) => {
+    setKeyword(next);
+    if (!next.trim()) {
+      setAppliedKeyword("");
+      setGeoCenter(null);
+    }
+  }, []);
+
   const buildListRequest = (pageParam: number): GetListAdvertisementRequest => {
     const req: GetListAdvertisementRequest = {
       isPaging: 1,
@@ -324,7 +333,7 @@ const SearchPage = () => {
             {/* Search input with autocomplete */}
             <LocationAutocomplete
               value={keyword}
-              onChange={setKeyword}
+              onChange={handleKeywordChange}
               onSelectLocation={handleLocationSelect}
               onSubmitKeyword={handleSubmitKeyword}
               
@@ -397,7 +406,7 @@ const SearchPage = () => {
             {/* Row 1: Search input full width with autocomplete */}
             <LocationAutocomplete
               value={keyword}
-              onChange={setKeyword}
+              onChange={handleKeywordChange}
               onSelectLocation={handleLocationSelect}
               onSubmitKeyword={handleSubmitKeyword}
               
