@@ -166,8 +166,9 @@ export const HeroSearch = () => {
         <div className="flex-1 min-w-0">
           <LocationAutocomplete
             value={searchKeyword}
-            onChange={handleKeywordChange}
-            onSelect={handleLocationSelect}
+            onChange={setSearchKeyword}
+            onSelectLocation={handleSelectLocation}
+            onSubmitKeyword={handleSubmitKeyword}
             placeholder={t("search.keywordPlaceholder")}
             inputClassName="h-11"
             enrichSuffix={provinceEnrich}
