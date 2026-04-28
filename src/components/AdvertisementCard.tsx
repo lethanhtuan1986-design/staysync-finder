@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Link } from "react-router-dom";
 import { MapPin, Heart, CalendarCheck, Smartphone, Eye, Clock } from "lucide-react";
 import { motion } from "framer-motion";
@@ -16,14 +16,18 @@ import {
 } from "@/components/ui/dialog";
 import { ScheduleForm } from "@/components/ScheduleForm";
 import { AppDownloadButtons } from "@/components/AppDownloadButtons";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface AdvertisementCardProps {
   data: AdvertisementData;
   index?: number;
   showScheduleButton?: boolean;
+  /** Eager-load ảnh cho card above-the-fold (vd 6 card đầu trên search). */
+  priority?: boolean;
 }
 
-export const AdvertisementCard = ({ data, index = 0, showScheduleButton = false }: AdvertisementCardProps) => {
+const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, priority = false }: AdvertisementCardProps) => {
+  const [imgLoaded, setImgLoaded] = useState(false);
   const { isSaved, toggleSave } = useSavedRooms();
   const { t } = useTranslation();
   const [scheduleOpen, setScheduleOpen] = useState(false);
@@ -62,21 +66,29 @@ export const AdvertisementCard = ({ data, index = 0, showScheduleButton = false 
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.05, ease: [0.2, 0.8, 0.2, 1] }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
       className="group"
     >
       <Link to={`/advertisement/${data?.uuid}`} className="block overflow-hidden">
         <div className="bg-card rounded-2xl overflow-hidden border border-border card-hover">
-          <div className="relative aspect-[3/2] overflow-hidden">
+          <div className="relative aspect-[3/2] overflow-hidden bg-muted">
+            {!imgLoaded && (
+              <Skeleton className="absolute inset-0 w-full h-full rounded-none" />
+            )}
             <img
               src={imageUrl}
               alt={data?.title || ""}
-              className="block object-cover w-full h-full group-hover:scale-105 transition-transform duration-500 will-change-transform"
-              loading="lazy"
+              className={`block object-cover w-full h-full group-hover:scale-105 transition-all duration-500 will-change-transform ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+              loading={priority ? "eager" : "lazy"}
+              decoding="async"
+              // @ts-expect-error - fetchpriority is valid HTML, not yet in React types in some versions
+              fetchpriority={priority ? "high" : "auto"}
+              onLoad={() => setImgLoaded(true)}
               onError={(e) => {
                 (e.target as HTMLImageElement).src = "/placeholder.svg";
+                setImgLoaded(true);
               }}
             />
             <button
@@ -219,3 +231,12 @@ export const AdvertisementCard = ({ data, index = 0, showScheduleButton = false 
     </motion.div>
   );
 };
+
+export const AdvertisementCard = memo(AdvertisementCardImpl, (prev, next) => {
+  return (
+    prev.data?.uuid === next.data?.uuid &&
+    prev.priority === next.priority &&
+    prev.showScheduleButton === next.showScheduleButton
+  );
+});
+
