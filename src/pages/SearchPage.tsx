@@ -594,12 +594,7 @@ const SearchPage = () => {
 
               {advertisements.length > 0 && (
                 <>
-                  <div
-                    className={cn(
-                      "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 transition-opacity",
-                      fetching && !loading && "opacity-60",
-                    )}
-                  >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                     {advertisements.map((ad: any, i: number) => (
                       <div key={ad.uuid}>
                         <AdvertisementCard data={ad} index={i} />
@@ -607,54 +602,18 @@ const SearchPage = () => {
                     ))}
                   </div>
 
-                  {totalPages > 1 && (
-                    <Pagination className="mt-8">
-                      <PaginationContent>
-                        <PaginationItem>
-                          <PaginationPrevious
-                            href="#"
-                            aria-disabled={page <= 1}
-                            className={cn(page <= 1 && "pointer-events-none opacity-40")}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (page > 1) goToPage(page - 1);
-                            }}
-                          />
-                        </PaginationItem>
-                        {pageItems.map((it, idx) =>
-                          it === "ellipsis" ? (
-                            <PaginationItem key={`e-${idx}`}>
-                              <PaginationEllipsis />
-                            </PaginationItem>
-                          ) : (
-                            <PaginationItem key={it}>
-                              <PaginationLink
-                                href="#"
-                                isActive={it === page}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  goToPage(it);
-                                }}
-                              >
-                                {it}
-                              </PaginationLink>
-                            </PaginationItem>
-                          ),
-                        )}
-                        <PaginationItem>
-                          <PaginationNext
-                            href="#"
-                            aria-disabled={page >= totalPages}
-                            className={cn(page >= totalPages && "pointer-events-none opacity-40")}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (page < totalPages) goToPage(page + 1);
-                            }}
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
-                  )}
+                  {/* Sentinel + trạng thái load thêm */}
+                  <div ref={loadMoreRef} className="mt-8 flex justify-center items-center min-h-[40px]">
+                    {isFetchingNextPage && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Loader2 size={16} className="animate-spin" />
+                        <span>{t("search.loadingMore")}</span>
+                      </div>
+                    )}
+                    {!hasNextPage && !isFetchingNextPage && advertisements.length >= PAGE_SIZE && (
+                      <span className="text-sm text-muted-foreground">{t("search.endOfResults")}</span>
+                    )}
+                  </div>
                 </>
               )}
 
