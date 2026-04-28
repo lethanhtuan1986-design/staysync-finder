@@ -199,6 +199,7 @@ const MapSearchPage = () => {
     (result: NominatimResult, bounds: GeoBounds) => {
       const label = result.display_name;
       setMapCenter({ lat: bounds.centerLat, lng: bounds.centerLng, zoom: 16, label });
+      setCenterPoint({ lat: bounds.centerLat, lng: bounds.centerLng });
     },
     [],
   );
