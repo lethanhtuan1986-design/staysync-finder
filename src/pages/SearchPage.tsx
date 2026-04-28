@@ -345,7 +345,7 @@ const SearchPage = () => {
             {/* Result count */}
             <div className="flex items-center gap-2 ml-auto shrink-0">
               <p className="text-sm text-foreground font-medium whitespace-nowrap">
-                {totalCount} {t("search.found")}
+                {advertisements.length} {t("search.found")}{hasNextPage ? "+" : ""}
               </p>
               {loading && <Loader2 size={16} className="animate-spin text-muted-foreground" />}
             </div>
@@ -421,7 +421,7 @@ const SearchPage = () => {
             {/* Row 3: Result count */}
             <div className="flex items-center gap-2 text-left">
               <p className="text-sm text-muted-foreground font-medium">
-                {totalCount} {t("search.found")}
+                {advertisements.length} {t("search.found")}{hasNextPage ? "+" : ""}
               </p>
               {loading && <Loader2 size={14} className="animate-spin text-muted-foreground" />}
             </div>
