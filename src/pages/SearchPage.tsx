@@ -146,6 +146,15 @@ const SearchPage = () => {
     setGeoCenter(null);
   }, []);
 
+  // Cập nhật text trong ô; nếu user xoá trắng → reset filter để load lại danh sách mặc định.
+  const handleKeywordChange = useCallback((next: string) => {
+    setKeyword(next);
+    if (!next.trim()) {
+      setAppliedKeyword("");
+      setGeoCenter(null);
+    }
+  }, []);
+
   const buildListRequest = (pageParam: number): GetListAdvertisementRequest => {
     const req: GetListAdvertisementRequest = {
       isPaging: 1,
