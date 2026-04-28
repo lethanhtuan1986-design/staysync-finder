@@ -271,12 +271,6 @@ export const MapView = ({ locations = [], hoveredId, loading = false, onMarkerCl
       clearTimeout(retry);
       map.off("resize", applyMinZoom);
     };
-
-    applyMinZoom();
-    map.on("resize", applyMinZoom);
-    return () => {
-      map.off("resize", applyMinZoom);
-    };
   }, [lockToRadius?.centerLat, lockToRadius?.centerLng, lockToRadius?.radiusKm]);
 
   // Search area circle overlay
