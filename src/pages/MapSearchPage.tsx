@@ -526,9 +526,9 @@ const MapSearchPage = () => {
             </Sheet>
           </div>
 
-          {/* Room cards list — infinite scroll + skeleton */}
+          {/* Room cards list */}
           <div className="flex-1 overflow-y-auto p-3 space-y-3">
-            {mapLoading && visibleAds.length === 0 && (
+            {(listLoading || listFetching) && (
               <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} className="bg-card rounded-2xl overflow-hidden border border-border">
@@ -542,25 +542,13 @@ const MapSearchPage = () => {
                 ))}
               </div>
             )}
-            {visibleAds.map((ad, i) => (
-              <div key={ad.uuid} onMouseEnter={() => setHoveredId(ad.uuid)} onMouseLeave={() => setHoveredId(null)}>
-                <AdvertisementCard data={ad} index={i} priority={i < 4} />
-              </div>
-            ))}
-            {visibleAds.length > 0 && (
-              <div ref={loadMoreRef} className="py-4 flex justify-center items-center min-h-[40px]">
-                {isFetchingNextPage && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 size={16} className="animate-spin" />
-                    <span>{t("search.loadingMore")}</span>
-                  </div>
-                )}
-                {!hasNextPage && !isFetchingNextPage && visibleAds.length >= PAGE_SIZE && (
-                  <span className="text-sm text-muted-foreground">{t("search.endOfResults")}</span>
-                )}
-              </div>
-            )}
-            {!mapLoading && visibleAds.length === 0 && (
+            {!listLoading && !listFetching &&
+              visibleAds.map((ad, i) => (
+                <div key={ad.uuid} onMouseEnter={() => setHoveredId(ad.uuid)} onMouseLeave={() => setHoveredId(null)}>
+                  <AdvertisementCard data={ad} index={i} priority={i < 4} />
+                </div>
+              ))}
+            {!listLoading && !listFetching && visibleAds.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Search size={32} className="text-muted-foreground mb-3" />
                 <p className="text-sm font-medium text-foreground">{t("search.noResult")}</p>
@@ -568,6 +556,66 @@ const MapSearchPage = () => {
               </div>
             )}
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="border-t border-border p-2">
+              <Pagination>
+                <PaginationContent className="flex-wrap justify-center gap-0.5">
+                  <PaginationItem>
+                    <PaginationPrevious
+                      className={cn(
+                        "cursor-pointer h-8 px-2 text-xs",
+                        page === 1 && "pointer-events-none opacity-50",
+                      )}
+                      onClick={() => page > 1 && setPage(page - 1)}
+                    />
+                  </PaginationItem>
+                  {(() => {
+                    const items: (number | "ellipsis")[] = [];
+                    const add = (n: number) => items.push(n);
+                    if (totalPages <= 5) {
+                      for (let i = 1; i <= totalPages; i++) add(i);
+                    } else {
+                      add(1);
+                      if (page > 3) items.push("ellipsis");
+                      const start = Math.max(2, page - 1);
+                      const end = Math.min(totalPages - 1, page + 1);
+                      for (let i = start; i <= end; i++) add(i);
+                      if (page < totalPages - 2) items.push("ellipsis");
+                      add(totalPages);
+                    }
+                    return items.map((it, idx) =>
+                      it === "ellipsis" ? (
+                        <PaginationItem key={`e-${idx}`}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      ) : (
+                        <PaginationItem key={it}>
+                          <PaginationLink
+                            isActive={it === page}
+                            onClick={() => setPage(it)}
+                            className="cursor-pointer h-8 w-8 text-xs"
+                          >
+                            {it}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ),
+                    );
+                  })()}
+                  <PaginationItem>
+                    <PaginationNext
+                      className={cn(
+                        "cursor-pointer h-8 px-2 text-xs",
+                        page === totalPages && "pointer-events-none opacity-50",
+                      )}
+                      onClick={() => page < totalPages && setPage(page + 1)}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </div>
 
         {/* Right: Map */}
