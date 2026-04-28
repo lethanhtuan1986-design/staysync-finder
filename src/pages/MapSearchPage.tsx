@@ -61,7 +61,8 @@ const MapSearchPage = () => {
   const [mobileShowList, setMobileShowList] = useState(false);
 
   const PAGE_SIZE = PAGE_SIZE_DEFAULT;
-  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const MAP_PAGE_SIZE = 500; // Lấy nhiều markers cho bản đồ
+  const [page, setPage] = useState(1);
 
   // Filter states from URL
   // Province driven by global selected province
