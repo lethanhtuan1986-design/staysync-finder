@@ -108,7 +108,7 @@ export const LocationAutocomplete = ({
       setIsOpen(false);
       const bounds = nominatimResultToBounds(item.raw, radiusKm);
       onSelectLocation(item.raw, bounds);
-      setItems([]);
+      // Giữ lại items để khi user focus lại vào ô vẫn thấy danh sách gợi ý.
     },
     [onChange, onSelectLocation, radiusKm],
   );
