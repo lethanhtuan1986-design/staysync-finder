@@ -10,6 +10,7 @@ import advertisementService, {
   AdvertisementData,
 } from "@/services/advertisement.service";
 import { httpRequest } from "@/services/index";
+import { PAGE_SIZE_DEFAULT } from "@/lib/pagination";
 import { Heart } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,7 +29,7 @@ const SavedRooms = () => {
         http: advertisementService.getListPaged({
           isPaging: 1,
           page: 1,
-          pageSize: 20,
+          pageSize: PAGE_SIZE_DEFAULT,
           adsLikeds: savedIds,
           isHot: 0,
           typeOrder: 0,

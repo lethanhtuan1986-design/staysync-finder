@@ -12,6 +12,7 @@ import { httpRequest } from "@/services/index";
 import apartmentTypeService, { ApartmentTypeItem } from "@/services/apartmentType.service";
 import advertisementService, { AdvertisementData } from "@/services/advertisement.service";
 import { filterPrices } from "@/lib/filter-options";
+import { PAGE_SIZE_DEFAULT } from "@/lib/pagination";
 
 import { ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -60,7 +61,7 @@ const Index = () => {
         http: advertisementService.getListPaged({
           isPaging: 1,
           page: 1,
-          pageSize: 30,
+          pageSize: PAGE_SIZE_DEFAULT,
           isHot: 1,
           typeOrder: 0,
         }),
@@ -77,7 +78,7 @@ const Index = () => {
         http: advertisementService.getListPaged({
           isPaging: 1,
           page: 1,
-          pageSize: 30,
+          pageSize: PAGE_SIZE_DEFAULT,
           isHot: 0,
           typeOrder: 0,
         }),
