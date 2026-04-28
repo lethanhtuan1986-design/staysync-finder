@@ -1,14 +1,15 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { RADIUS_OPTIONS, DEFAULT_RADIUS_KM, NominatimResult, GeoBounds, getUserLocation } from "@/lib/geocoding";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { SEO } from "@/components/SEO";
 import { Navbar } from "@/components/Navbar";
 import { AdvertisementCard } from "@/components/AdvertisementCard";
 import { MapView } from "@/components/MapView";
+import { Skeleton } from "@/components/ui/skeleton";
 import { filterPrices, filterApartmentSizes } from "@/lib/filter-options";
 import advertisementService, {
-  GetAdvertisementsForMapRequest,
+  GetListAdvertisementRequest,
   AdvertisementData,
 } from "@/services/advertisement.service";
 import provinceService, { ProvinceItem, WardItem, formatLocationLabel } from "@/services/province.service";
@@ -16,6 +17,7 @@ import apartmentTypeService, {
   ApartmentTypeItem,
 } from "@/services/apartmentType.service";
 import { httpRequest } from "@/services/index";
+import { PAGE_SIZE_DEFAULT } from "@/lib/pagination";
 import { useTranslation } from "react-i18next";
 import { Search, SlidersHorizontal, Loader2, X, ArrowLeft } from "lucide-react";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
@@ -62,14 +64,8 @@ const MapSearchPage = () => {
   const [filterOpen, setFilterOpen] = useState(false);
   const [mobileShowList, setMobileShowList] = useState(false);
 
-  // Map bounding box state (from viewport)
-  const [bounds, setBounds] = useState<{
-    neLat: number;
-    neLng: number;
-    swLat: number;
-    swLng: number;
-  } | null>(null);
-  const [debouncedBounds, setDebouncedBounds] = useState(bounds);
+  const PAGE_SIZE = PAGE_SIZE_DEFAULT;
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Filter states from URL
   // Province driven by global selected province
@@ -96,11 +92,6 @@ const MapSearchPage = () => {
     getUserLocation().catch(() => {});
   }, []);
 
-  // Debounce map viewport bounds (300ms)
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedBounds(bounds), 300);
-    return () => clearTimeout(timer);
-  }, [bounds]);
 
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number; zoom: number; label?: string } | null>(null);
   const [centerPoint, setCenterPoint] = useState<{ lat: number; lng: number } | null>(null);
@@ -212,8 +203,27 @@ const MapSearchPage = () => {
     [],
   );
 
-  const buildMapRequest = (): GetAdvertisementsForMapRequest => {
-    const req: GetAdvertisementsForMapRequest = { isPaging: 1, page: 1, pageSize: 100, isHot: 0, typeOrder: 0 };
+  // Compute bounding box (NE/SW) for radius around centerPoint
+  const radiusBounds = useMemo(() => {
+    if (!centerPoint) return null;
+    const latDelta = radiusKm / 111.32;
+    const lngDelta = radiusKm / (111.32 * Math.max(Math.cos((centerPoint.lat * Math.PI) / 180), 0.01));
+    return {
+      neLat: centerPoint.lat + latDelta,
+      neLng: centerPoint.lng + lngDelta,
+      swLat: centerPoint.lat - latDelta,
+      swLng: centerPoint.lng - lngDelta,
+    };
+  }, [centerPoint, radiusKm]);
+
+  const buildListRequest = (pageParam: number): GetListAdvertisementRequest => {
+    const req: GetListAdvertisementRequest = {
+      isPaging: 1,
+      page: pageParam,
+      pageSize: PAGE_SIZE,
+      isHot: 0,
+      typeOrder: 0,
+    };
     if (keyword) req.keyword = keyword;
     if (provinceId) req.provinceId = provinceId;
     if (wardId) req.wardId = wardId;
@@ -222,19 +232,24 @@ const MapSearchPage = () => {
     if (priceTo) req.priceTo = Number(priceTo);
     if (apartmentSizeFrom) req.apartmentSizeFrom = Number(apartmentSizeFrom);
     if (apartmentSizeTo) req.apartmentSizeTo = Number(apartmentSizeTo);
-    // Always use current map viewport bounds
-    if (debouncedBounds) {
-      req.neLat = debouncedBounds.neLat;
-      req.neLng = debouncedBounds.neLng;
-      req.swLat = debouncedBounds.swLat;
-      req.swLng = debouncedBounds.swLng;
+    if (radiusBounds) {
+      req.neLat = radiusBounds.neLat;
+      req.neLng = radiusBounds.neLng;
+      req.swLat = radiusBounds.swLat;
+      req.swLng = radiusBounds.swLng;
     }
     return req;
   };
 
-  const { data: mapData, isLoading: mapLoading } = useQuery({
+  const {
+    data: listData,
+    isLoading: mapLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: [
-      "map-advertisements",
+      "map-advertisements-list",
       keyword,
       provinceId,
       wardId,
@@ -243,24 +258,65 @@ const MapSearchPage = () => {
       priceTo,
       apartmentSizeFrom,
       apartmentSizeTo,
-      debouncedBounds?.neLat,
-      debouncedBounds?.swLat,
-      debouncedBounds?.neLng,
-      debouncedBounds?.swLng,
+      radiusBounds?.neLat,
+      radiusBounds?.swLat,
     ],
-    queryFn: () =>
-      httpRequest({
-        http: advertisementService.getForMap(buildMapRequest()),
-      }),
-    enabled: !!debouncedBounds,
+    queryFn: ({ pageParam }) =>
+      httpRequest({ http: advertisementService.getListPaged(buildListRequest(pageParam as number)) }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage: any, allPages) => {
+      const items = lastPage?.items ?? [];
+      return items.length >= PAGE_SIZE ? allPages.length + 1 : undefined;
+    },
   });
 
-  const mapLocations = useMemo(() => {
-    const items = (mapData as any)?.items || [];
-    return items as { point: string; longitude: number; address: string; totalAds: number; ads: AdvertisementData[] }[];
-  }, [mapData]);
+  const visibleAds = useMemo<AdvertisementData[]>(
+    () => (listData?.pages ?? []).flatMap((p: any) => p?.items ?? []),
+    [listData],
+  );
 
-  const visibleAds = useMemo(() => mapLocations.flatMap((loc) => loc.ads), [mapLocations]);
+  // Group ads by coordinate to build map markers
+  const mapLocations = useMemo(() => {
+    const groups = new Map<string, { point: string; longitude: number; address: string; totalAds: number; ads: AdvertisementData[] }>();
+    visibleAds.forEach((ad: any) => {
+      const lat = Number(ad?.apartmentUu?.latitude ?? ad?.latitude);
+      const lng = Number(ad?.apartmentUu?.longitude ?? ad?.longitude);
+      if (!isFinite(lat) || !isFinite(lng) || (lat === 0 && lng === 0)) return;
+      const key = `${lat.toFixed(5)},${lng.toFixed(5)}`;
+      const existing = groups.get(key);
+      const address = ad?.apartmentUu?.address || ad?.address || "";
+      if (existing) {
+        existing.ads.push(ad);
+        existing.totalAds++;
+      } else {
+        groups.set(key, {
+          point: JSON.stringify([lat, lng]),
+          longitude: lng,
+          address,
+          totalAds: 1,
+          ads: [ad],
+        });
+      }
+    });
+    return Array.from(groups.values());
+  }, [visibleAds]);
+
+  // Infinite scroll sentinel
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage && !mapLoading) {
+          fetchNextPage();
+        }
+      },
+      { rootMargin: "800px 0px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, mapLoading, fetchNextPage, visibleAds.length]);
 
   // Sync to URL
   useEffect(() => {
@@ -311,13 +367,6 @@ const MapSearchPage = () => {
       }
     }
   };
-
-  const handleBoundsChange = useCallback(
-    (b: { neLat: number; neLng: number; swLat: number; swLng: number }) => {
-      setBounds(b);
-    },
-    [],
-  );
 
   const activeFilterCount = [
     apartmentTypeUuid,
@@ -535,11 +584,20 @@ const MapSearchPage = () => {
             </Sheet>
           </div>
 
-          {/* Room cards list */}
+          {/* Room cards list — infinite scroll + skeleton */}
           <div className="flex-1 overflow-y-auto p-3 space-y-3">
             {mapLoading && visibleAds.length === 0 && (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 size={24} className="animate-spin text-primary" />
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="bg-card rounded-2xl overflow-hidden border border-border">
+                    <Skeleton className="aspect-[3/2] w-full" />
+                    <div className="p-3 space-y-2">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-5 w-1/2" />
+                      <Skeleton className="h-3 w-2/3" />
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
             {visibleAds.map((ad, i) => (
@@ -548,9 +606,22 @@ const MapSearchPage = () => {
                 onMouseEnter={() => setHoveredId(ad.uuid)}
                 onMouseLeave={() => setHoveredId(null)}
               >
-                <AdvertisementCard data={ad} index={i} />
+                <AdvertisementCard data={ad} index={i} priority={i < 4} />
               </div>
             ))}
+            {visibleAds.length > 0 && (
+              <div ref={loadMoreRef} className="py-4 flex justify-center items-center min-h-[40px]">
+                {isFetchingNextPage && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>{t("search.loadingMore")}</span>
+                  </div>
+                )}
+                {!hasNextPage && !isFetchingNextPage && visibleAds.length >= PAGE_SIZE && (
+                  <span className="text-sm text-muted-foreground">{t("search.endOfResults")}</span>
+                )}
+              </div>
+            )}
             {!mapLoading && visibleAds.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Search size={32} className="text-muted-foreground mb-3" />
@@ -586,7 +657,7 @@ const MapSearchPage = () => {
             hoveredId={hoveredId}
             loading={mapLoading && mapLocations.length === 0}
             onMarkerClick={(id) => navigate(`/advertisement/${id}`)}
-            onBoundsChange={handleBoundsChange}
+            
             flyTo={mapCenter}
             lockToRadius={lockToRadius}
             searchOverlay={lockToRadius}
