@@ -567,11 +567,20 @@ const MapSearchPage = () => {
             </Sheet>
           </div>
 
-          {/* Room cards list */}
+          {/* Room cards list — infinite scroll + skeleton */}
           <div className="flex-1 overflow-y-auto p-3 space-y-3">
             {mapLoading && visibleAds.length === 0 && (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 size={24} className="animate-spin text-primary" />
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="bg-card rounded-2xl overflow-hidden border border-border">
+                    <Skeleton className="aspect-[3/2] w-full" />
+                    <div className="p-3 space-y-2">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-5 w-1/2" />
+                      <Skeleton className="h-3 w-2/3" />
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
             {visibleAds.map((ad, i) => (
@@ -580,9 +589,22 @@ const MapSearchPage = () => {
                 onMouseEnter={() => setHoveredId(ad.uuid)}
                 onMouseLeave={() => setHoveredId(null)}
               >
-                <AdvertisementCard data={ad} index={i} />
+                <AdvertisementCard data={ad} index={i} priority={i < 4} />
               </div>
             ))}
+            {visibleAds.length > 0 && (
+              <div ref={loadMoreRef} className="py-4 flex justify-center items-center min-h-[40px]">
+                {isFetchingNextPage && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>{t("search.loadingMore")}</span>
+                  </div>
+                )}
+                {!hasNextPage && !isFetchingNextPage && visibleAds.length >= PAGE_SIZE && (
+                  <span className="text-sm text-muted-foreground">{t("search.endOfResults")}</span>
+                )}
+              </div>
+            )}
             {!mapLoading && visibleAds.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Search size={32} className="text-muted-foreground mb-3" />
