@@ -29,6 +29,8 @@ export const HeroSearch = () => {
   const { provinceCode, provinceName } = useSelectedProvince();
   const bias = getProvinceBias(provinceCode);
   const [searchKeyword, setSearchKeyword] = useState("");
+  // Bounds chỉ được set khi user chọn 1 gợi ý từ Nominatim → mới truyền lat/lng lên search.
+  const [geoBounds, setGeoBounds] = useState<GeoBounds | null>(null);
   // provinceId is driven by global selected province (no more in-search dropdown)
   const provinceId = provinceCode || "";
   const [wardId, setWardId] = useState("");
