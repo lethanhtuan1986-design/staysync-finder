@@ -10,6 +10,7 @@ import { httpRequest } from "@/services/index";
 import provinceService, { ProvinceItem, WardItem, formatLocationLabel } from "@/services/province.service";
 import apartmentTypeService, { ApartmentTypeItem } from "@/services/apartmentType.service";
 import { filterPrices, filterApartmentSizes } from "@/lib/filter-options";
+import { GeoBounds } from "@/lib/geocoding";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSelectedProvince } from "@/hooks/useSelectedProvince";
