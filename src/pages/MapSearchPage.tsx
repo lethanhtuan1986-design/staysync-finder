@@ -203,8 +203,27 @@ const MapSearchPage = () => {
     [],
   );
 
-  const buildMapRequest = (): GetAdvertisementsForMapRequest => {
-    const req: GetAdvertisementsForMapRequest = { isPaging: 1, page: 1, pageSize: 100, isHot: 0, typeOrder: 0 };
+  // Compute bounding box (NE/SW) for radius around centerPoint
+  const radiusBounds = useMemo(() => {
+    if (!centerPoint) return null;
+    const latDelta = radiusKm / 111.32;
+    const lngDelta = radiusKm / (111.32 * Math.max(Math.cos((centerPoint.lat * Math.PI) / 180), 0.01));
+    return {
+      neLat: centerPoint.lat + latDelta,
+      neLng: centerPoint.lng + lngDelta,
+      swLat: centerPoint.lat - latDelta,
+      swLng: centerPoint.lng - lngDelta,
+    };
+  }, [centerPoint, radiusKm]);
+
+  const buildListRequest = (pageParam: number): GetListAdvertisementRequest => {
+    const req: GetListAdvertisementRequest = {
+      isPaging: 1,
+      page: pageParam,
+      pageSize: PAGE_SIZE,
+      isHot: 0,
+      typeOrder: 0,
+    };
     if (keyword) req.keyword = keyword;
     if (provinceId) req.provinceId = provinceId;
     if (wardId) req.wardId = wardId;
@@ -213,19 +232,24 @@ const MapSearchPage = () => {
     if (priceTo) req.priceTo = Number(priceTo);
     if (apartmentSizeFrom) req.apartmentSizeFrom = Number(apartmentSizeFrom);
     if (apartmentSizeTo) req.apartmentSizeTo = Number(apartmentSizeTo);
-    // Always use current map viewport bounds
-    if (debouncedBounds) {
-      req.neLat = debouncedBounds.neLat;
-      req.neLng = debouncedBounds.neLng;
-      req.swLat = debouncedBounds.swLat;
-      req.swLng = debouncedBounds.swLng;
+    if (radiusBounds) {
+      req.neLat = radiusBounds.neLat;
+      req.neLng = radiusBounds.neLng;
+      req.swLat = radiusBounds.swLat;
+      req.swLng = radiusBounds.swLng;
     }
     return req;
   };
 
-  const { data: mapData, isLoading: mapLoading } = useQuery({
+  const {
+    data: listData,
+    isLoading: mapLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: [
-      "map-advertisements",
+      "map-advertisements-list",
       keyword,
       provinceId,
       wardId,
@@ -234,24 +258,48 @@ const MapSearchPage = () => {
       priceTo,
       apartmentSizeFrom,
       apartmentSizeTo,
-      debouncedBounds?.neLat,
-      debouncedBounds?.swLat,
-      debouncedBounds?.neLng,
-      debouncedBounds?.swLng,
+      radiusBounds?.neLat,
+      radiusBounds?.swLat,
     ],
-    queryFn: () =>
-      httpRequest({
-        http: advertisementService.getForMap(buildMapRequest()),
-      }),
-    enabled: !!debouncedBounds,
+    queryFn: ({ pageParam }) =>
+      httpRequest({ http: advertisementService.getListPaged(buildListRequest(pageParam as number)) }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage: any, allPages) => {
+      const items = lastPage?.items ?? [];
+      return items.length >= PAGE_SIZE ? allPages.length + 1 : undefined;
+    },
   });
 
-  const mapLocations = useMemo(() => {
-    const items = (mapData as any)?.items || [];
-    return items as { point: string; longitude: number; address: string; totalAds: number; ads: AdvertisementData[] }[];
-  }, [mapData]);
+  const visibleAds = useMemo<AdvertisementData[]>(
+    () => (listData?.pages ?? []).flatMap((p: any) => p?.items ?? []),
+    [listData],
+  );
 
-  const visibleAds = useMemo(() => mapLocations.flatMap((loc) => loc.ads), [mapLocations]);
+  // Group ads by coordinate to build map markers
+  const mapLocations = useMemo(() => {
+    const groups = new Map<string, { point: string; longitude: number; address: string; totalAds: number; ads: AdvertisementData[] }>();
+    visibleAds.forEach((ad: any) => {
+      const lat = Number(ad?.apartmentUu?.latitude ?? ad?.latitude);
+      const lng = Number(ad?.apartmentUu?.longitude ?? ad?.longitude);
+      if (!isFinite(lat) || !isFinite(lng) || (lat === 0 && lng === 0)) return;
+      const key = `${lat.toFixed(5)},${lng.toFixed(5)}`;
+      const existing = groups.get(key);
+      const address = ad?.apartmentUu?.address || ad?.address || "";
+      if (existing) {
+        existing.ads.push(ad);
+        existing.totalAds++;
+      } else {
+        groups.set(key, {
+          point: JSON.stringify([lat, lng]),
+          longitude: lng,
+          address,
+          totalAds: 1,
+          ads: [ad],
+        });
+      }
+    });
+    return Array.from(groups.values());
+  }, [visibleAds]);
 
   // Sync to URL
   useEffect(() => {
