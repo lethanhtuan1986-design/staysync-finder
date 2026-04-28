@@ -231,3 +231,12 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
     </motion.div>
   );
 };
+
+export const AdvertisementCard = memo(AdvertisementCardImpl, (prev, next) => {
+  return (
+    prev.data?.uuid === next.data?.uuid &&
+    prev.priority === next.priority &&
+    prev.showScheduleButton === next.showScheduleButton
+  );
+});
+
