@@ -92,11 +92,6 @@ const MapSearchPage = () => {
     getUserLocation().catch(() => {});
   }, []);
 
-  // Debounce map viewport bounds (300ms)
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedBounds(bounds), 300);
-    return () => clearTimeout(timer);
-  }, [bounds]);
 
   const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number; zoom: number; label?: string } | null>(null);
   const [centerPoint, setCenterPoint] = useState<{ lat: number; lng: number } | null>(null);
