@@ -161,6 +161,7 @@ const SearchPage = () => {
   const {
     data: listData,
     isLoading: loading,
+    isFetching: fetching,
     error: queryError,
   } = useQuery({
     queryKey: [
@@ -176,15 +177,65 @@ const SearchPage = () => {
       typeOrder,
       geoBounds?.neLat,
       geoBounds?.swLat,
+      page,
     ],
     queryFn: () => httpRequest({ http: advertisementService.getListPaged(buildListRequest()) }),
+    placeholderData: keepPreviousData,
   });
 
   const advertisements = useMemo(() => {
     return (listData as any)?.items || [];
   }, [listData]);
-  const totalCount = (listData as any)?.pagination?.totalCount || advertisements.length;
+  const rawTotalCount: number = (listData as any)?.pagination?.totalCount || 0;
+  // totalCount từ API không ổn định — fallback heuristic dựa trên độ dài trang.
+  const totalPages = useMemo(() => {
+    if (rawTotalCount > 0) return Math.max(1, Math.ceil(rawTotalCount / PAGE_SIZE));
+    // Nếu trang hiện tại đầy → có khả năng còn trang sau.
+    if (advertisements.length >= PAGE_SIZE) return page + 1;
+    return Math.max(1, page);
+  }, [rawTotalCount, advertisements.length, page]);
+  const totalCount = rawTotalCount || advertisements.length;
   const error = queryError ? t("search.serverError") : null;
+
+  // Reset page về 1 khi filter thay đổi
+  useEffect(() => {
+    setPage(1);
+  }, [
+    keyword,
+    provinceId,
+    wardId,
+    apartmentTypeUuid,
+    priceFrom,
+    priceTo,
+    apartmentSizeFrom,
+    apartmentSizeTo,
+    typeOrder,
+    geoBounds?.neLat,
+    geoBounds?.swLat,
+  ]);
+
+  const goToPage = useCallback((next: number) => {
+    const target = Math.max(1, next);
+    setPage(target);
+    setTimeout(() => {
+      listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  }, []);
+
+  // Build danh sách số trang rút gọn với ellipsis.
+  const pageItems = useMemo<(number | "ellipsis")[]>(() => {
+    const total = totalPages;
+    const current = page;
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const items: (number | "ellipsis")[] = [1];
+    const start = Math.max(2, current - 1);
+    const end = Math.min(total - 1, current + 1);
+    if (start > 2) items.push("ellipsis");
+    for (let i = start; i <= end; i++) items.push(i);
+    if (end < total - 1) items.push("ellipsis");
+    items.push(total);
+    return items;
+  }, [page, totalPages]);
 
   // Sync state to URL
   useEffect(() => {
