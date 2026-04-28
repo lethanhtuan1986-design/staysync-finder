@@ -24,7 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useSelectedProvince } from "@/hooks/useSelectedProvince";
 import { getProvinceBias } from "@/lib/province-geo";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 30;
 
 const SORT_OPTIONS = [
   { value: "0", label: "Mới nhất" },
@@ -241,9 +241,7 @@ const SearchPage = () => {
     navigate(`/search/map?${params.toString()}`);
   };
 
-  const activeFilterCount = [apartmentTypeUuid, selectedPriceUuid, selectedSizeUuid, wardId].filter(
-    Boolean,
-  ).length;
+  const activeFilterCount = [apartmentTypeUuid, selectedPriceUuid, selectedSizeUuid, wardId].filter(Boolean).length;
 
   return (
     <div className="min-h-screen bg-background flex flex-col pt-16">
@@ -348,7 +346,9 @@ const SearchPage = () => {
                 <SelectTrigger className="h-10 text-xs rounded-lg bg-secondary/50 border border-border">
                   <div className="flex items-center justify-center gap-1">
                     <ArrowUpDown size={14} />
-                    <span className="truncate">{SORT_OPTIONS.find(o => o.value === typeOrder)?.label || 'Sắp xếp'}</span>
+                    <span className="truncate">
+                      {SORT_OPTIONS.find((o) => o.value === typeOrder)?.label || "Sắp xếp"}
+                    </span>
                   </div>
                 </SelectTrigger>
                 <SelectContent>
@@ -537,7 +537,6 @@ const SearchPage = () => {
                     </div>
                   </div>
                 </div>
-
               </div>
             </aside>
 
