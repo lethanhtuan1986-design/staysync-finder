@@ -184,6 +184,11 @@ const SearchPage = () => {
   const advertisements = useMemo(() => {
     return (listData?.pages ?? []).flatMap((p: any) => p?.items ?? []);
   }, [listData]);
+  const totalCount = useMemo(() => {
+    const firstPage: any = listData?.pages?.[0];
+    const apiTotal = Number(firstPage?.pagination?.totalCount ?? 0);
+    return apiTotal > 0 ? apiTotal : advertisements.length;
+  }, [listData, advertisements.length]);
   const error = queryError ? t("search.serverError") : null;
 
   // Sentinel: tự fetch trang sau khi gần chạm đáy.
