@@ -159,6 +159,11 @@ const SearchPage = () => {
       req.neLng = geoBounds.neLng;
       req.swLat = geoBounds.swLat;
       req.swLng = geoBounds.swLng;
+    } else {
+      req.neLat = null;
+      req.neLng = null;
+      req.swLat = null;
+      req.swLng = null;
     }
     return req;
   };
