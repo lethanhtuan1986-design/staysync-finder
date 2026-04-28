@@ -58,7 +58,16 @@ const SearchPage = () => {
   const [typeOrder, setTypeOrder] = useState(searchParams.get("typeOrder") || "0");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
-  const [geoBounds, setGeoBounds] = useState<GeoBounds | null>(null);
+  const [geoBounds, setGeoBounds] = useState<GeoBounds | null>(() => {
+    const neLat = Number(searchParams.get("neLat"));
+    const neLng = Number(searchParams.get("neLng"));
+    const swLat = Number(searchParams.get("swLat"));
+    const swLng = Number(searchParams.get("swLng"));
+    if ([neLat, neLng, swLat, swLng].every((v) => Number.isFinite(v))) {
+      return { neLat, neLng, swLat, swLng, centerLat: (neLat + swLat) / 2, centerLng: (neLng + swLng) / 2 };
+    }
+    return null;
+  });
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const selectedPriceUuid =
@@ -229,6 +238,12 @@ const SearchPage = () => {
     if (apartmentSizeFrom) params.set("apartmentSizeFrom", apartmentSizeFrom);
     if (apartmentSizeTo) params.set("apartmentSizeTo", apartmentSizeTo);
     if (typeOrder !== "0") params.set("typeOrder", typeOrder);
+    if (geoBounds) {
+      params.set("neLat", String(geoBounds.neLat));
+      params.set("neLng", String(geoBounds.neLng));
+      params.set("swLat", String(geoBounds.swLat));
+      params.set("swLng", String(geoBounds.swLng));
+    }
     setSearchParams(params, { replace: true });
   }, [
     keyword,
@@ -240,6 +255,7 @@ const SearchPage = () => {
     apartmentSizeFrom,
     apartmentSizeTo,
     typeOrder,
+    geoBounds,
     setSearchParams,
   ]);
 

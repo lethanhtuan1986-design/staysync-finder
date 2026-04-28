@@ -10,6 +10,7 @@ import { httpRequest } from "@/services/index";
 import provinceService, { ProvinceItem, WardItem, formatLocationLabel } from "@/services/province.service";
 import apartmentTypeService, { ApartmentTypeItem } from "@/services/apartmentType.service";
 import { filterPrices, filterApartmentSizes } from "@/lib/filter-options";
+import { GeoBounds } from "@/lib/geocoding";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSelectedProvince } from "@/hooks/useSelectedProvince";
@@ -28,6 +29,8 @@ export const HeroSearch = () => {
   const { provinceCode, provinceName } = useSelectedProvince();
   const bias = getProvinceBias(provinceCode);
   const [searchKeyword, setSearchKeyword] = useState("");
+  // Bounds chỉ được set khi user chọn 1 gợi ý từ Nominatim → mới truyền lat/lng lên search.
+  const [geoBounds, setGeoBounds] = useState<GeoBounds | null>(null);
   // provinceId is driven by global selected province (no more in-search dropdown)
   const provinceId = provinceCode || "";
   const [wardId, setWardId] = useState("");
@@ -102,7 +105,7 @@ export const HeroSearch = () => {
       }),
   });
 
-  const handleSearch = () => {
+  const handleSearch = (boundsOverride?: GeoBounds | null) => {
     const params = new URLSearchParams();
     if (searchKeyword.trim()) params.set("q", searchKeyword.trim());
     if (provinceId) params.set("provinceId", provinceId);
@@ -121,7 +124,28 @@ export const HeroSearch = () => {
       if (selectedSize.valueTo) params.set("apartmentSizeTo", String(selectedSize.valueTo));
     }
 
+    // Truyền bounding box khi user đã chọn 1 địa điểm từ map/autocomplete.
+    const bounds = boundsOverride !== undefined ? boundsOverride : geoBounds;
+    if (bounds) {
+      params.set("neLat", String(bounds.neLat));
+      params.set("neLng", String(bounds.neLng));
+      params.set("swLat", String(bounds.swLat));
+      params.set("swLng", String(bounds.swLng));
+    }
+
     navigate(`/search?${params.toString()}`);
+  };
+
+  // User gõ lại → huỷ bounds đã chọn (chỉ truyền lat/lng khi thực sự chọn gợi ý).
+  const handleKeywordChange = (next: string) => {
+    setSearchKeyword(next);
+    if (geoBounds) setGeoBounds(null);
+  };
+
+  const handleLocationSelect = (_result: any, bounds: GeoBounds) => {
+    setGeoBounds(bounds);
+    // Tự động tìm ngay khi chọn gợi ý, đồng thời truyền bounds vừa chọn.
+    handleSearch(bounds);
   };
 
   const advancedFilterCount = [wardId, priceUuid, sizeUuid, apartmentTypeUuid].filter(Boolean).length;
@@ -141,8 +165,8 @@ export const HeroSearch = () => {
         <div className="flex-1 min-w-0">
           <LocationAutocomplete
             value={searchKeyword}
-            onChange={setSearchKeyword}
-            onSelect={() => handleSearch()}
+            onChange={handleKeywordChange}
+            onSelect={handleLocationSelect}
             placeholder={t("search.keywordPlaceholder")}
             inputClassName="h-11"
             enrichSuffix={provinceEnrich}
@@ -171,7 +195,7 @@ export const HeroSearch = () => {
             )}
           </button>
           <button
-            onClick={handleSearch}
+            onClick={() => handleSearch()}
             className={cn(
               "bg-primary hover:bg-primary/90 text-primary-foreground h-11 rounded-xl font-medium transition-all active:scale-95 flex items-center justify-center",
               isMobile ? "w-11" : "gap-2 whitespace-nowrap px-6"
