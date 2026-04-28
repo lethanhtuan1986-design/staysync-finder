@@ -125,6 +125,13 @@ const SearchPage = () => {
     setGeoBounds(bounds);
   }, []);
 
+  // Khi user gõ lại trong ô tìm kiếm: huỷ geoBounds đã chọn trước đó.
+  // lat/lng chỉ được truyền lên khi user thực sự chọn 1 gợi ý từ dropdown.
+  const handleKeywordChange = useCallback((next: string) => {
+    setKeyword(next);
+    setGeoBounds((prev) => (prev ? null : prev));
+  }, []);
+
   const buildListRequest = (pageParam: number): GetListAdvertisementRequest => {
     const req: GetListAdvertisementRequest = {
       isPaging: 1,
@@ -291,7 +298,7 @@ const SearchPage = () => {
             {/* Search input with autocomplete */}
             <LocationAutocomplete
               value={keyword}
-              onChange={setKeyword}
+              onChange={handleKeywordChange}
               onSelect={handleLocationSelect}
               enrichSuffix={enrichSuffix}
               radiusKm={radiusKm}
@@ -362,7 +369,7 @@ const SearchPage = () => {
             {/* Row 1: Search input full width with autocomplete */}
             <LocationAutocomplete
               value={keyword}
-              onChange={setKeyword}
+              onChange={handleKeywordChange}
               onSelect={handleLocationSelect}
               enrichSuffix={enrichSuffix}
               radiusKm={radiusKm}
