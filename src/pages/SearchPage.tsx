@@ -426,7 +426,7 @@ const SearchPage = () => {
             {/* Row 3: Result count */}
             <div className="flex items-center gap-2 text-left">
               <p className="text-sm text-muted-foreground font-medium">
-                {advertisements.length} {t("search.found")}{hasNextPage ? "+" : ""}
+                {totalCount} {t("search.found")}
               </p>
               {loading && <Loader2 size={14} className="animate-spin text-muted-foreground" />}
             </div>
