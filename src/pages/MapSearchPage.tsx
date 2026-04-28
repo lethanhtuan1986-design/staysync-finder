@@ -301,6 +301,23 @@ const MapSearchPage = () => {
     return Array.from(groups.values());
   }, [visibleAds]);
 
+  // Infinite scroll sentinel
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage && !mapLoading) {
+          fetchNextPage();
+        }
+      },
+      { rootMargin: "800px 0px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, mapLoading, fetchNextPage, visibleAds.length]);
+
   // Sync to URL
   useEffect(() => {
     const params = new URLSearchParams();
