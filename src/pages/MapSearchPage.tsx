@@ -503,7 +503,7 @@ const MapSearchPage = () => {
               </button>
             )}
             <p className="text-sm font-medium text-foreground flex-1">
-              {visibleAds.length} {t("search.found")}
+              {totalCount} {t("search.found")}
             </p>
             <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
               <SheetTrigger asChild>
