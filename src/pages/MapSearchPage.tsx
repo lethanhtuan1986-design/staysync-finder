@@ -9,8 +9,9 @@ import { MapView } from "@/components/MapView";
 import { Skeleton } from "@/components/ui/skeleton";
 import { filterPrices, filterApartmentSizes } from "@/lib/filter-options";
 import advertisementService, {
-  GetListAdvertisementRequest,
+  GetAdvertisementsForMapRequest,
   AdvertisementData,
+  MapLocationGroup,
 } from "@/services/advertisement.service";
 import provinceService, { ProvinceItem, WardItem, formatLocationLabel } from "@/services/province.service";
 import apartmentTypeService, {
