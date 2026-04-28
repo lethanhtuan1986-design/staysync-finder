@@ -184,6 +184,11 @@ const SearchPage = () => {
   const advertisements = useMemo(() => {
     return (listData?.pages ?? []).flatMap((p: any) => p?.items ?? []);
   }, [listData]);
+  const totalCount = useMemo(() => {
+    const firstPage: any = listData?.pages?.[0];
+    const apiTotal = Number(firstPage?.pagination?.totalCount ?? 0);
+    return apiTotal > 0 ? apiTotal : advertisements.length;
+  }, [listData, advertisements.length]);
   const error = queryError ? t("search.serverError") : null;
 
   // Sentinel: tự fetch trang sau khi gần chạm đáy.
@@ -345,7 +350,7 @@ const SearchPage = () => {
             {/* Result count */}
             <div className="flex items-center gap-2 ml-auto shrink-0">
               <p className="text-sm text-foreground font-medium whitespace-nowrap">
-                {advertisements.length} {t("search.found")}{hasNextPage ? "+" : ""}
+                {totalCount} {t("search.found")}
               </p>
               {loading && <Loader2 size={16} className="animate-spin text-muted-foreground" />}
             </div>
@@ -421,7 +426,7 @@ const SearchPage = () => {
             {/* Row 3: Result count */}
             <div className="flex items-center gap-2 text-left">
               <p className="text-sm text-muted-foreground font-medium">
-                {advertisements.length} {t("search.found")}{hasNextPage ? "+" : ""}
+                {totalCount} {t("search.found")}
               </p>
               {loading && <Loader2 size={14} className="animate-spin text-muted-foreground" />}
             </div>
