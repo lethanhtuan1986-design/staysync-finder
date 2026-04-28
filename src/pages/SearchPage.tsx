@@ -55,6 +55,11 @@ const SearchPage = () => {
   const [apartmentSizeFrom, setApartmentSizeFrom] = useState(searchParams.get("apartmentSizeFrom") || "");
   const [apartmentSizeTo, setApartmentSizeTo] = useState(searchParams.get("apartmentSizeTo") || "");
   const [keyword, setKeyword] = useState(searchParams.get("q") || "");
+  const [debouncedKeyword, setDebouncedKeyword] = useState(keyword);
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedKeyword(keyword), 400);
+    return () => clearTimeout(t);
+  }, [keyword]);
   const [typeOrder, setTypeOrder] = useState(searchParams.get("typeOrder") || "0");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
@@ -149,7 +154,7 @@ const SearchPage = () => {
       isHot: 0,
       typeOrder: Number(typeOrder),
     };
-    if (keyword) req.keyword = keyword;
+    if (debouncedKeyword) req.keyword = debouncedKeyword;
     if (provinceId) req.provinceId = provinceId;
     if (wardId) req.wardId = wardId;
     if (apartmentTypeUuid) req.apartmentTypeUuid = apartmentTypeUuid;
@@ -176,7 +181,7 @@ const SearchPage = () => {
   } = useInfiniteQuery({
     queryKey: [
       "advertisements-list",
-      keyword,
+      debouncedKeyword,
       provinceId,
       wardId,
       apartmentTypeUuid,
@@ -229,7 +234,7 @@ const SearchPage = () => {
   // Sync state to URL
   useEffect(() => {
     const params = new URLSearchParams();
-    if (keyword) params.set("q", keyword);
+    if (debouncedKeyword) params.set("q", debouncedKeyword);
     if (provinceId) params.set("provinceId", provinceId);
     if (wardId) params.set("wardId", wardId);
     if (apartmentTypeUuid) params.set("apartmentTypeUuid", apartmentTypeUuid);
@@ -246,7 +251,7 @@ const SearchPage = () => {
     }
     setSearchParams(params, { replace: true });
   }, [
-    keyword,
+    debouncedKeyword,
     provinceId,
     wardId,
     apartmentTypeUuid,
