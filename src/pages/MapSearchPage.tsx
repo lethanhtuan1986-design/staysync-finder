@@ -351,13 +351,6 @@ const MapSearchPage = () => {
     }
   };
 
-  const handleBoundsChange = useCallback(
-    (b: { neLat: number; neLng: number; swLat: number; swLng: number }) => {
-      setBounds(b);
-    },
-    [],
-  );
-
   const activeFilterCount = [
     apartmentTypeUuid,
     selectedPriceUuid,
