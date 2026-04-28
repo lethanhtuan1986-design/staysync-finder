@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Link } from "react-router-dom";
 import { MapPin, Heart, CalendarCheck, Smartphone, Eye, Clock } from "lucide-react";
 import { motion } from "framer-motion";
@@ -16,14 +16,18 @@ import {
 } from "@/components/ui/dialog";
 import { ScheduleForm } from "@/components/ScheduleForm";
 import { AppDownloadButtons } from "@/components/AppDownloadButtons";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface AdvertisementCardProps {
   data: AdvertisementData;
   index?: number;
   showScheduleButton?: boolean;
+  /** Eager-load ảnh cho card above-the-fold (vd 6 card đầu trên search). */
+  priority?: boolean;
 }
 
-export const AdvertisementCard = ({ data, index = 0, showScheduleButton = false }: AdvertisementCardProps) => {
+const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, priority = false }: AdvertisementCardProps) => {
+  const [imgLoaded, setImgLoaded] = useState(false);
   const { isSaved, toggleSave } = useSavedRooms();
   const { t } = useTranslation();
   const [scheduleOpen, setScheduleOpen] = useState(false);
