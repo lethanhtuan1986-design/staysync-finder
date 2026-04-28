@@ -601,7 +601,7 @@ const MapSearchPage = () => {
             onMarkerClick={(id) => navigate(`/advertisement/${id}`)}
             flyTo={mapCenter}
             lockToRadius={lockToRadius}
-            searchOverlay={lockToRadius}
+            
           />
 
           {/* Mobile: toggle list button */}
