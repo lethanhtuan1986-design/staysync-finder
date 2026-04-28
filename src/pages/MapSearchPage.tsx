@@ -1,25 +1,15 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { RADIUS_OPTIONS, DEFAULT_RADIUS_KM, NominatimResult, GeoBounds, getUserLocation } from "@/lib/geocoding";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { SEO } from "@/components/SEO";
 import { Navbar } from "@/components/Navbar";
 import { AdvertisementCard } from "@/components/AdvertisementCard";
 import { MapView } from "@/components/MapView";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-  PaginationEllipsis,
-} from "@/components/ui/pagination";
 import { filterPrices, filterApartmentSizes } from "@/lib/filter-options";
 import advertisementService, {
   GetAdvertisementsForMapRequest,
-  GetListAdvertisementRequest,
   AdvertisementData,
   MapLocationGroup,
 } from "@/services/advertisement.service";
@@ -28,7 +18,7 @@ import apartmentTypeService, { ApartmentTypeItem } from "@/services/apartmentTyp
 import { httpRequest } from "@/services/index";
 import { PAGE_SIZE_DEFAULT } from "@/lib/pagination";
 import { useTranslation } from "react-i18next";
-import { Search, SlidersHorizontal, X, ArrowLeft } from "lucide-react";
+import { Search, SlidersHorizontal, Loader2, X, ArrowLeft } from "lucide-react";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -61,8 +51,7 @@ const MapSearchPage = () => {
   const [mobileShowList, setMobileShowList] = useState(false);
 
   const PAGE_SIZE = PAGE_SIZE_DEFAULT;
-  const MAP_PAGE_SIZE = 500; // Lấy nhiều markers cho bản đồ
-  const [page, setPage] = useState(1);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Filter states from URL
   // Province driven by global selected province
@@ -197,9 +186,11 @@ const MapSearchPage = () => {
     };
   }, [centerPoint, radiusKm]);
 
-  // Build chung filter payload (dùng cho cả map markers + list paged)
-  const buildBaseFilters = () => {
-    const req: Partial<GetAdvertisementsForMapRequest & GetListAdvertisementRequest> = {
+  const buildMapRequest = (pageParam: number): GetAdvertisementsForMapRequest => {
+    const req: GetAdvertisementsForMapRequest = {
+      isPaging: 0,
+      page: pageParam,
+      pageSize: PAGE_SIZE,
       isHot: 0,
       typeOrder: 0,
     };
@@ -225,58 +216,75 @@ const MapSearchPage = () => {
     return req;
   };
 
-  const filterDeps = [
-    debouncedKeyword,
-    provinceId,
-    wardId,
-    apartmentTypeUuid,
-    priceFrom,
-    priceTo,
-    apartmentSizeFrom,
-    apartmentSizeTo,
-    radiusBounds?.neLat,
-    radiusBounds?.swLat,
-  ];
-
-  // Query 1: Lấy toàn bộ markers cho bản đồ (không phân trang hiển thị)
-  const { data: mapData, isLoading: mapLoading } = useQuery({
-    queryKey: ["map-advertisements-markers", ...filterDeps],
-    queryFn: () =>
-      httpRequest({
-        http: advertisementService.getForMap({
-          ...buildBaseFilters(),
-          isPaging: 0,
-          page: 1,
-          pageSize: MAP_PAGE_SIZE,
-        } as GetAdvertisementsForMapRequest),
-      }),
+  const {
+    data: listData,
+    isLoading: mapLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: [
+      "map-advertisements",
+      debouncedKeyword,
+      provinceId,
+      wardId,
+      apartmentTypeUuid,
+      priceFrom,
+      priceTo,
+      apartmentSizeFrom,
+      apartmentSizeTo,
+      radiusBounds?.neLat,
+      radiusBounds?.swLat,
+    ],
+    queryFn: ({ pageParam }) =>
+      httpRequest({ http: advertisementService.getForMap(buildMapRequest(pageParam as number)) }),
+    initialPageParam: 1,
+    // getForMap trả về MapLocationGroup[]; dùng độ dài trang để xác định còn trang sau.
+    getNextPageParam: (lastPage: any, allPages) => {
+      const items = lastPage?.items ?? [];
+      return items.length >= PAGE_SIZE ? allPages.length + 1 : undefined;
+    },
   });
 
-  const mapLocations = useMemo<MapLocationGroup[]>(() => (mapData as any)?.items ?? [], [mapData]);
+  // Gộp các trang location group lại; nếu trùng toạ độ giữa các trang thì merge ads.
+  const mapLocations = useMemo<MapLocationGroup[]>(() => {
+    const merged = new Map<string, MapLocationGroup>();
+    (listData?.pages ?? []).forEach((page: any) => {
+      const groups: MapLocationGroup[] = page?.items ?? [];
+      groups.forEach((g) => {
+        const existing = merged.get(g.point);
+        if (existing) {
+          const seen = new Set(existing.ads.map((a) => a.uuid));
+          g.ads.forEach((a) => {
+            if (!seen.has(a.uuid)) existing.ads.push(a);
+          });
+          existing.totalAds = existing.ads.length;
+        } else {
+          merged.set(g.point, { ...g, ads: [...g.ads] });
+        }
+      });
+    });
+    return Array.from(merged.values());
+  }, [listData]);
 
-  // Query 2: Danh sách phòng phân trang (hiển thị bên trái)
-  const { data: pagedData, isLoading: listLoading, isFetching: listFetching } = useQuery({
-    queryKey: ["map-advertisements-list", page, ...filterDeps],
-    queryFn: () =>
-      httpRequest({
-        http: advertisementService.getListPaged({
-          ...buildBaseFilters(),
-          isPaging: 1,
-          page,
-          pageSize: PAGE_SIZE,
-        } as GetListAdvertisementRequest),
-      }),
-  });
+  const visibleAds = useMemo<AdvertisementData[]>(() => mapLocations.flatMap((loc) => loc.ads), [mapLocations]);
 
-  const visibleAds = useMemo<AdvertisementData[]>(() => (pagedData as any)?.items ?? [], [pagedData]);
-  const totalCount: number = (pagedData as any)?.pagination?.totalCount ?? visibleAds.length;
-  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
-
-  // Reset trang về 1 khi đổi filter
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Infinite scroll sentinel
   useEffect(() => {
-    setPage(1);
-  }, filterDeps);
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage && !mapLoading) {
+          fetchNextPage();
+        }
+      },
+      { rootMargin: "800px 0px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, mapLoading, fetchNextPage, visibleAds.length]);
 
   // Sync to URL
   useEffect(() => {
@@ -503,7 +511,7 @@ const MapSearchPage = () => {
               </button>
             )}
             <p className="text-sm font-medium text-foreground flex-1">
-              {totalCount} {t("search.found")}
+              {visibleAds.length} {t("search.found")}
             </p>
             <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
               <SheetTrigger asChild>
@@ -526,9 +534,9 @@ const MapSearchPage = () => {
             </Sheet>
           </div>
 
-          {/* Room cards list */}
+          {/* Room cards list — infinite scroll + skeleton */}
           <div className="flex-1 overflow-y-auto p-3 space-y-3">
-            {(listLoading || listFetching) && (
+            {mapLoading && visibleAds.length === 0 && (
               <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} className="bg-card rounded-2xl overflow-hidden border border-border">
@@ -542,13 +550,25 @@ const MapSearchPage = () => {
                 ))}
               </div>
             )}
-            {!listLoading && !listFetching &&
-              visibleAds.map((ad, i) => (
-                <div key={ad.uuid} onMouseEnter={() => setHoveredId(ad.uuid)} onMouseLeave={() => setHoveredId(null)}>
-                  <AdvertisementCard data={ad} index={i} priority={i < 4} />
-                </div>
-              ))}
-            {!listLoading && !listFetching && visibleAds.length === 0 && (
+            {visibleAds.map((ad, i) => (
+              <div key={ad.uuid} onMouseEnter={() => setHoveredId(ad.uuid)} onMouseLeave={() => setHoveredId(null)}>
+                <AdvertisementCard data={ad} index={i} priority={i < 4} />
+              </div>
+            ))}
+            {visibleAds.length > 0 && (
+              <div ref={loadMoreRef} className="py-4 flex justify-center items-center min-h-[40px]">
+                {isFetchingNextPage && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>{t("search.loadingMore")}</span>
+                  </div>
+                )}
+                {!hasNextPage && !isFetchingNextPage && visibleAds.length >= PAGE_SIZE && (
+                  <span className="text-sm text-muted-foreground">{t("search.endOfResults")}</span>
+                )}
+              </div>
+            )}
+            {!mapLoading && visibleAds.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Search size={32} className="text-muted-foreground mb-3" />
                 <p className="text-sm font-medium text-foreground">{t("search.noResult")}</p>
@@ -556,66 +576,6 @@ const MapSearchPage = () => {
               </div>
             )}
           </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="border-t border-border p-2">
-              <Pagination>
-                <PaginationContent className="flex-wrap justify-center gap-0.5">
-                  <PaginationItem>
-                    <PaginationPrevious
-                      className={cn(
-                        "cursor-pointer h-8 px-2 text-xs",
-                        page === 1 && "pointer-events-none opacity-50",
-                      )}
-                      onClick={() => page > 1 && setPage(page - 1)}
-                    />
-                  </PaginationItem>
-                  {(() => {
-                    const items: (number | "ellipsis")[] = [];
-                    const add = (n: number) => items.push(n);
-                    if (totalPages <= 5) {
-                      for (let i = 1; i <= totalPages; i++) add(i);
-                    } else {
-                      add(1);
-                      if (page > 3) items.push("ellipsis");
-                      const start = Math.max(2, page - 1);
-                      const end = Math.min(totalPages - 1, page + 1);
-                      for (let i = start; i <= end; i++) add(i);
-                      if (page < totalPages - 2) items.push("ellipsis");
-                      add(totalPages);
-                    }
-                    return items.map((it, idx) =>
-                      it === "ellipsis" ? (
-                        <PaginationItem key={`e-${idx}`}>
-                          <PaginationEllipsis />
-                        </PaginationItem>
-                      ) : (
-                        <PaginationItem key={it}>
-                          <PaginationLink
-                            isActive={it === page}
-                            onClick={() => setPage(it)}
-                            className="cursor-pointer h-8 w-8 text-xs"
-                          >
-                            {it}
-                          </PaginationLink>
-                        </PaginationItem>
-                      ),
-                    );
-                  })()}
-                  <PaginationItem>
-                    <PaginationNext
-                      className={cn(
-                        "cursor-pointer h-8 px-2 text-xs",
-                        page === totalPages && "pointer-events-none opacity-50",
-                      )}
-                      onClick={() => page < totalPages && setPage(page + 1)}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
-          )}
         </div>
 
         {/* Right: Map */}
