@@ -1,14 +1,15 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { RADIUS_OPTIONS, DEFAULT_RADIUS_KM, NominatimResult, GeoBounds, getUserLocation } from "@/lib/geocoding";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { SEO } from "@/components/SEO";
 import { Navbar } from "@/components/Navbar";
 import { AdvertisementCard } from "@/components/AdvertisementCard";
 import { MapView } from "@/components/MapView";
+import { Skeleton } from "@/components/ui/skeleton";
 import { filterPrices, filterApartmentSizes } from "@/lib/filter-options";
 import advertisementService, {
-  GetAdvertisementsForMapRequest,
+  GetListAdvertisementRequest,
   AdvertisementData,
 } from "@/services/advertisement.service";
 import provinceService, { ProvinceItem, WardItem, formatLocationLabel } from "@/services/province.service";
@@ -16,6 +17,7 @@ import apartmentTypeService, {
   ApartmentTypeItem,
 } from "@/services/apartmentType.service";
 import { httpRequest } from "@/services/index";
+import { PAGE_SIZE_DEFAULT } from "@/lib/pagination";
 import { useTranslation } from "react-i18next";
 import { Search, SlidersHorizontal, Loader2, X, ArrowLeft } from "lucide-react";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
