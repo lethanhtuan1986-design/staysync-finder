@@ -22,6 +22,12 @@ interface SearchOverlay {
   radiusKm: number;
 }
 
+interface LockToRadius {
+  centerLat: number;
+  centerLng: number;
+  radiusKm: number;
+}
+
 interface MapViewProps {
   locations?: MapLocationGroup[];
   hoveredId?: string | null;
@@ -31,7 +37,17 @@ interface MapViewProps {
   useGeolocation?: boolean;
   searchOverlay?: SearchOverlay | null;
   flyTo?: FlyToTarget | null;
+  lockToRadius?: LockToRadius | null;
 }
+
+const computeRadiusBounds = (centerLat: number, centerLng: number, radiusKm: number) => {
+  const latDelta = radiusKm / 111.32;
+  const lngDelta = radiusKm / (111.32 * Math.max(Math.cos((centerLat * Math.PI) / 180), 0.01));
+  return L.latLngBounds(
+    [centerLat - latDelta, centerLng - lngDelta],
+    [centerLat + latDelta, centerLng + lngDelta],
+  );
+};
 
 const parsePoint = (point: string): LatLngTuple | null => {
   try {
@@ -108,7 +124,7 @@ const buildPopupHtml = (loc: MapLocationGroup) => {
   `;
 };
 
-export const MapView = ({ locations = [], hoveredId, loading = false, onMarkerClick, onBoundsChange, searchOverlay, flyTo }: MapViewProps) => {
+export const MapView = ({ locations = [], hoveredId, loading = false, onMarkerClick, onBoundsChange, searchOverlay, flyTo, lockToRadius }: MapViewProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
@@ -224,6 +240,33 @@ export const MapView = ({ locations = [], hoveredId, loading = false, onMarkerCl
     if (containerRef.current) observer.observe(containerRef.current);
     return () => observer.disconnect();
   }, []);
+
+  // Lock zoom-out to the radius bounding box (pan stays free)
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (!lockToRadius) {
+      map.setMinZoom(2);
+      return;
+    }
+
+    const { centerLat, centerLng, radiusKm } = lockToRadius;
+    const applyMinZoom = () => {
+      const bounds = computeRadiusBounds(centerLat, centerLng, radiusKm);
+      const z = map.getBoundsZoom(bounds, false, L.point(20, 20));
+      map.setMinZoom(z);
+      if (map.getZoom() < z) {
+        map.setZoom(z, { animate: true });
+      }
+    };
+
+    applyMinZoom();
+    map.on("resize", applyMinZoom);
+    return () => {
+      map.off("resize", applyMinZoom);
+    };
+  }, [lockToRadius?.centerLat, lockToRadius?.centerLng, lockToRadius?.radiusKm]);
 
   // Search area circle overlay
   useEffect(() => {
