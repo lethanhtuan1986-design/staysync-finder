@@ -254,7 +254,59 @@ const MapSearchPage = () => {
     keepPreviousData: true,
   } as any);
 
-  const mapLocations = useMemo<MapLocationGroup[]>(() => (mapData as any)?.items ?? [], [mapData]);
+  const incomingLocations = useMemo<MapLocationGroup[]>(() => (mapData as any)?.items ?? [], [mapData]);
+
+  // Tích lũy các nhóm vị trí đã load trước. Mỗi lần load thêm chỉ merge vào kho,
+  // không xoá marker cũ → bản đồ không "load lại" những căn đã hiển thị.
+  // Khi filter (keyword/province/ward/type/price/size) thay đổi → reset kho.
+  const accumulatedRef = useRef<Map<string, MapLocationGroup>>(new Map());
+  const [accumulatedLocations, setAccumulatedLocations] = useState<MapLocationGroup[]>([]);
+
+  // Reset khi đổi filter (không reset khi chỉ đổi viewport)
+  useEffect(() => {
+    accumulatedRef.current = new Map();
+    setAccumulatedLocations([]);
+  }, [
+    appliedKeyword,
+    provinceId,
+    wardId,
+    apartmentTypeUuid,
+    priceFrom,
+    priceTo,
+    apartmentSizeFrom,
+    apartmentSizeTo,
+  ]);
+
+  // Merge dữ liệu mới vào kho đã tích lũy (dedupe theo point + ad uuid)
+  useEffect(() => {
+    if (!incomingLocations.length) return;
+    const store = accumulatedRef.current;
+    let changed = false;
+    for (const loc of incomingLocations) {
+      const key = loc.point;
+      const existing = store.get(key);
+      if (!existing) {
+        store.set(key, { ...loc, ads: [...loc.ads] });
+        changed = true;
+        continue;
+      }
+      const seenAds = new Set(existing.ads.map((a) => a.uuid));
+      const merged = [...existing.ads];
+      for (const ad of loc.ads) {
+        if (ad?.uuid && !seenAds.has(ad.uuid)) {
+          seenAds.add(ad.uuid);
+          merged.push(ad);
+          changed = true;
+        }
+      }
+      if (changed) {
+        store.set(key, { ...existing, ads: merged, totalAds: merged.length, address: loc.address || existing.address });
+      }
+    }
+    if (changed) setAccumulatedLocations(Array.from(store.values()));
+  }, [incomingLocations]);
+
+  const mapLocations = accumulatedLocations;
   const allAds = useMemo<AdvertisementData[]>(() => {
     const seen = new Set<string>();
     const result: AdvertisementData[] = [];
