@@ -358,9 +358,9 @@ const MapSearchPage = () => {
         </label>
         <LocationAutocomplete
           value={keyword}
-          onChange={setKeyword}
+          onChange={handleKeywordChange}
           onSelectLocation={handleLocationSelect}
-          onSubmitKeyword={() => {}}
+          onSubmitKeyword={handleSubmitKeyword}
           enrichSuffix={enrichSuffix}
           radiusKm={radiusKm}
           placeholder={t("search.keywordPlaceholder")}
