@@ -307,10 +307,29 @@ const MapSearchPage = () => {
   }, [incomingLocations]);
 
   const mapLocations = accumulatedLocations;
+
+  // Danh sách + count chỉ tính các phòng nằm trong viewport hiện tại của bản đồ.
+  // Marker thì vẫn dùng `mapLocations` tích lũy để không "load lại" khi pan/zoom.
+  const visibleLocations = useMemo<MapLocationGroup[]>(() => {
+    if (!viewportBounds) return mapLocations;
+    const { neLat, neLng, swLat, swLng } = viewportBounds;
+    const minLat = Math.min(neLat, swLat);
+    const maxLat = Math.max(neLat, swLat);
+    const crossesAntimeridian = swLng > neLng;
+    const lngInBounds = (lng: number) =>
+      crossesAntimeridian ? lng >= swLng || lng <= neLng : lng >= swLng && lng <= neLng;
+    return mapLocations.filter((loc) => {
+      const pt = parsePoint(loc.point);
+      if (!pt) return false;
+      const [lat, lng] = pt;
+      return lat >= minLat && lat <= maxLat && lngInBounds(lng);
+    });
+  }, [mapLocations, viewportBounds]);
+
   const allAds = useMemo<AdvertisementData[]>(() => {
     const seen = new Set<string>();
     const result: AdvertisementData[] = [];
-    for (const loc of mapLocations) {
+    for (const loc of visibleLocations) {
       for (const ad of loc.ads) {
         if (ad?.uuid && !seen.has(ad.uuid)) {
           seen.add(ad.uuid);
@@ -319,7 +338,7 @@ const MapSearchPage = () => {
       }
     }
     return result;
-  }, [mapLocations]);
+  }, [visibleLocations]);
 
   // Client-side infinite scroll cho danh sách bên trái
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
