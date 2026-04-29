@@ -258,9 +258,8 @@ export const MapView = ({ locations = [], hoveredId, loading = false, onMarkerCl
       // (so user can never see area outside the radius)
       const z = map.getBoundsZoom(bounds, true, L.point(0, 0));
       map.setMinZoom(z);
-      if (map.getZoom() < z) {
-        map.setZoom(z, { animate: false });
-      }
+      // Do NOT force setZoom here — it would interrupt any in-flight flyTo animation.
+      // Leaflet will clamp to minZoom on the next user-driven zoom action.
     };
 
     // Run once map is ready, plus a short retry to cover container size race
