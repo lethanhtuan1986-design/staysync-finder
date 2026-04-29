@@ -596,9 +596,9 @@ const MapSearchPage = () => {
           <div className="absolute top-4 left-4 z-[1000] w-[calc(100%-2rem)] md:w-80">
             <LocationAutocomplete
               value={keyword}
-              onChange={setKeyword}
+              onChange={handleKeywordChange}
               onSelectLocation={handleLocationSelect}
-          onSubmitKeyword={() => {}}
+              onSubmitKeyword={handleSubmitKeyword}
               enrichSuffix={enrichSuffix}
               radiusKm={radiusKm}
               placeholder={t("search.keywordPlaceholder")}
