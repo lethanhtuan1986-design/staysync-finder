@@ -62,13 +62,20 @@ const MapSearchPage = () => {
   const [priceTo, setPriceTo] = useState(searchParams.get("priceTo") || "");
   const [apartmentSizeFrom, setApartmentSizeFrom] = useState(searchParams.get("apartmentSizeFrom") || "");
   const [apartmentSizeTo, setApartmentSizeTo] = useState(searchParams.get("apartmentSizeTo") || "");
+  // `keyword` = text trong ô input (không trigger query).
+  // `appliedKeyword` = từ khóa đã được user submit (chọn "Tìm …" hoặc Enter).
   const [keyword, setKeyword] = useState(searchParams.get("q") || "");
-  const [debouncedKeyword, setDebouncedKeyword] = useState(keyword);
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedKeyword(keyword), 400);
-    return () => clearTimeout(t);
-  }, [keyword]);
+  const [appliedKeyword, setAppliedKeyword] = useState(searchParams.get("q") || "");
   const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
+
+  const handleKeywordChange = useCallback((next: string) => {
+    setKeyword(next);
+    if (!next.trim()) setAppliedKeyword("");
+  }, []);
+
+  const handleSubmitKeyword = useCallback((text: string) => {
+    setAppliedKeyword(text);
+  }, []);
 
   // Yêu cầu vị trí người dùng sớm để bias kết quả tìm kiếm
   useEffect(() => {
@@ -205,7 +212,7 @@ const MapSearchPage = () => {
       isHot: 0,
       typeOrder: 0,
     };
-    if (debouncedKeyword) req.keyword = debouncedKeyword;
+    if (appliedKeyword) req.keyword = appliedKeyword;
     if (provinceId) req.provinceId = provinceId;
     if (wardId) req.wardId = wardId;
     if (apartmentTypeUuid) req.apartmentTypeUuid = apartmentTypeUuid;
@@ -230,7 +237,7 @@ const MapSearchPage = () => {
   const { data: mapData, isLoading: mapLoading, isFetching: mapFetching } = useQuery({
     queryKey: [
       "map-advertisements",
-      debouncedKeyword,
+      appliedKeyword,
       provinceId,
       wardId,
       apartmentTypeUuid,
@@ -293,7 +300,7 @@ const MapSearchPage = () => {
   // Sync to URL
   useEffect(() => {
     const params = new URLSearchParams();
-    if (debouncedKeyword) params.set("q", debouncedKeyword);
+    if (appliedKeyword) params.set("q", appliedKeyword);
     if (provinceId) params.set("provinceId", provinceId);
     if (wardId) params.set("wardId", wardId);
     if (apartmentTypeUuid) params.set("apartmentTypeUuid", apartmentTypeUuid);
@@ -303,7 +310,7 @@ const MapSearchPage = () => {
     if (apartmentSizeTo) params.set("apartmentSizeTo", apartmentSizeTo);
     setSearchParams(params, { replace: true });
   }, [
-    debouncedKeyword,
+    appliedKeyword,
     provinceId,
     wardId,
     apartmentTypeUuid,
@@ -351,9 +358,9 @@ const MapSearchPage = () => {
         </label>
         <LocationAutocomplete
           value={keyword}
-          onChange={setKeyword}
+          onChange={handleKeywordChange}
           onSelectLocation={handleLocationSelect}
-          onSubmitKeyword={() => {}}
+          onSubmitKeyword={handleSubmitKeyword}
           enrichSuffix={enrichSuffix}
           radiusKm={radiusKm}
           placeholder={t("search.keywordPlaceholder")}
@@ -589,9 +596,9 @@ const MapSearchPage = () => {
           <div className="absolute top-4 left-4 z-[1000] w-[calc(100%-2rem)] md:w-80">
             <LocationAutocomplete
               value={keyword}
-              onChange={setKeyword}
+              onChange={handleKeywordChange}
               onSelectLocation={handleLocationSelect}
-          onSubmitKeyword={() => {}}
+              onSubmitKeyword={handleSubmitKeyword}
               enrichSuffix={enrichSuffix}
               radiusKm={radiusKm}
               placeholder={t("search.keywordPlaceholder")}
