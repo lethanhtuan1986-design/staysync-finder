@@ -62,13 +62,20 @@ const MapSearchPage = () => {
   const [priceTo, setPriceTo] = useState(searchParams.get("priceTo") || "");
   const [apartmentSizeFrom, setApartmentSizeFrom] = useState(searchParams.get("apartmentSizeFrom") || "");
   const [apartmentSizeTo, setApartmentSizeTo] = useState(searchParams.get("apartmentSizeTo") || "");
+  // `keyword` = text trong ô input (không trigger query).
+  // `appliedKeyword` = từ khóa đã được user submit (chọn "Tìm …" hoặc Enter).
   const [keyword, setKeyword] = useState(searchParams.get("q") || "");
-  const [debouncedKeyword, setDebouncedKeyword] = useState(keyword);
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedKeyword(keyword), 400);
-    return () => clearTimeout(t);
-  }, [keyword]);
+  const [appliedKeyword, setAppliedKeyword] = useState(searchParams.get("q") || "");
   const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
+
+  const handleKeywordChange = useCallback((next: string) => {
+    setKeyword(next);
+    if (!next.trim()) setAppliedKeyword("");
+  }, []);
+
+  const handleSubmitKeyword = useCallback((text: string) => {
+    setAppliedKeyword(text);
+  }, []);
 
   // Yêu cầu vị trí người dùng sớm để bias kết quả tìm kiếm
   useEffect(() => {
