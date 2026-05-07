@@ -465,7 +465,7 @@ const PropertyDetail = () => {
               <ScheduleForm propertyTitle={detail.title} apartmentUuid={apt.uuid} advertisementUuid={detail.uuid} />
               <DepositButton />
               {detail.isJoinPromo === 1 && (
-                <div className="rounded-xl border border-emerald-600/30 bg-emerald-600/5 p-4 space-y-2">
+                <div className="rounded-xl border border-emerald-600/30 bg-emerald-600/5 p-4 space-y-2 lg:hidden">
                   <h3 className="font-semibold text-foreground flex items-center gap-2">
                     <BadgePercent size={18} className="text-emerald-600" />
                     {t("detail.promoTitle")}
@@ -482,6 +482,12 @@ const PropertyDetail = () => {
                   </ul>
                 </div>
               )}
+              {/* Apartment type on PC - swapped position with promo */}
+              <div className="hidden lg:block rounded-xl border border-border bg-card p-4">
+                <span className="inline-block text-xs font-bold uppercase tracking-wider text-primary bg-accent px-2 py-1 rounded">
+                  {apt.apartmentTypeUu?.name || t("listing.room")}
+                </span>
+              </div>
             </div>
           </div>
         </div>
