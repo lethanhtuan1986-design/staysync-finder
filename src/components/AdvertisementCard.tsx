@@ -72,8 +72,8 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
       className="group"
     >
       <Link to={`/advertisement/${data?.uuid}`} className="block overflow-hidden">
-        <div className="bg-card rounded-2xl overflow-hidden border border-border card-hover">
-          <div className="relative aspect-[3/2] overflow-hidden bg-muted">
+        <div className="bg-card rounded-2xl overflow-hidden border border-border card-hover flex flex-row sm:block">
+          <div className="relative w-[42%] shrink-0 aspect-[4/5] sm:w-full sm:aspect-[3/2] overflow-hidden bg-muted">
             {!imgLoaded && (
               <Skeleton className="absolute inset-0 w-full h-full rounded-none" />
             )}
