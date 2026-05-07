@@ -158,14 +158,14 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
               </div>
             )}
 
-            {/* Mobile: type + size + rooms on one line */}
-            <div className="sm:hidden bg-secondary rounded-lg px-3 py-2 text-xs text-muted-foreground font-medium">
-              {statsPartsMobile.join(" • ")}
+            {/* Mobile: loại phòng riêng 1 dòng */}
+            <div className="sm:hidden text-xs text-muted-foreground font-medium">
+              {typeName}
             </div>
 
-            {/* Desktop: only size + rooms */}
+            {/* Size + rooms */}
             {statsParts.length > 0 && (
-              <div className="hidden sm:block bg-secondary rounded-lg px-3 py-2 text-xs text-muted-foreground font-medium">
+              <div className="bg-secondary rounded-lg px-3 py-2 text-xs text-muted-foreground font-medium">
                 {statsParts.join(" • ")}
               </div>
             )}
