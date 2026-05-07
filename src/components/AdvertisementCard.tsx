@@ -72,7 +72,8 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
       className="group"
     >
       <Link to={`/advertisement/${data?.uuid}`} className="block overflow-hidden">
-        <div className="bg-card rounded-2xl overflow-hidden border border-border card-hover flex flex-row sm:block">
+        <div className="bg-card rounded-2xl overflow-hidden border border-border card-hover flex flex-col">
+          <div className="flex flex-row sm:flex-col">
           <div className="relative w-[42%] shrink-0 aspect-[4/3] sm:w-full sm:aspect-[3/2] overflow-hidden bg-muted">
             {!imgLoaded && (
               <Skeleton className="absolute inset-0 w-full h-full rounded-none" />
@@ -117,7 +118,7 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
             </div>
           </div>
 
-          <div className="p-3 sm:p-4 space-y-1.5 sm:space-y-2 flex-1 min-w-0">
+          <div className="p-3 sm:p-4 space-y-1.5 sm:space-y-2 flex-1 min-w-0 sm:flex-initial">
             <h3 className="font-semibold text-foreground text-sm truncate" title={data?.title || ""}>
               {data?.title || "Đang cập nhật"}
             </h3>
@@ -160,8 +161,11 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
               </p>
             )}
 
-            {/* Action buttons */}
-            <div className="flex flex-row gap-2 pt-1">
+          </div>
+          </div>
+
+            {/* Action buttons - row 3, full width below */}
+            <div className="flex flex-row gap-2 px-3 pb-3 sm:px-4 sm:pb-4">
               {/* Schedule button */}
               <Dialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
                 <DialogTrigger asChild>
@@ -225,7 +229,6 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
                 </DialogContent>
               </Dialog>
             </div>
-          </div>
         </div>
       </Link>
     </motion.div>
