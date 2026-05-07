@@ -29,7 +29,7 @@ interface AdvertisementCardProps {
 const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, priority = false }: AdvertisementCardProps) => {
   const [imgLoaded, setImgLoaded] = useState(false);
   const { isSaved, toggleSave } = useSavedRooms();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [depositOpen, setDepositOpen] = useState(false);
   const apt = data?.apartmentUu;
