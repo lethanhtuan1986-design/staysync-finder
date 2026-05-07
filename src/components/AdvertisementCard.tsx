@@ -73,8 +73,8 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
     >
       <Link to={`/advertisement/${data?.uuid}`} className="block overflow-hidden">
         <div className="bg-card rounded-2xl overflow-hidden border border-border card-hover flex flex-col">
-          <div className="flex flex-row sm:flex-col">
-          <div className="relative w-[42%] shrink-0 aspect-[4/3] sm:w-full sm:aspect-[3/2] overflow-hidden bg-muted">
+          <div className="flex flex-row sm:flex-col gap-3 sm:gap-0 p-2 sm:p-0">
+          <div className="relative w-[42%] shrink-0 aspect-[4/3] sm:w-full sm:aspect-[3/2] overflow-hidden bg-muted rounded-xl sm:rounded-none">
             {!imgLoaded && (
               <Skeleton className="absolute inset-0 w-full h-full rounded-none" />
             )}
@@ -118,15 +118,13 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
             </div>
           </div>
 
-          <div className="p-3 sm:p-4 space-y-1.5 sm:space-y-2 flex-1 min-w-0 sm:flex-initial">
-            <h3 className="font-semibold text-foreground text-sm truncate" title={data?.title || ""}>
-              {data?.title || "Đang cập nhật"}
-            </h3>
-
+          <div className="py-1 sm:p-4 space-y-1.5 sm:space-y-2 flex-1 min-w-0 sm:flex-initial">
             <p className="text-muted-foreground text-sm flex items-center gap-1.5">
               <MapPin size={14} className="shrink-0 text-primary" />
               <span className="truncate">{locationText}</span>
             </p>
+
+
 
             {showMeta && (
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
@@ -164,8 +162,16 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
           </div>
           </div>
 
+            {/* Title - below image/info row, above action buttons */}
+            <h3
+              className="font-semibold text-foreground text-sm px-3 sm:px-4 line-clamp-2"
+              title={data?.title || ""}
+            >
+              {data?.title || "Đang cập nhật"}
+            </h3>
+
             {/* Action buttons - row 3, full width below */}
-            <div className="flex flex-row gap-2 px-3 pb-3 sm:px-4 sm:pb-4">
+            <div className="flex flex-row gap-2 px-3 pb-3 pt-2 sm:px-4 sm:pb-4">
               {/* Schedule button */}
               <Dialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
                 <DialogTrigger asChild>
