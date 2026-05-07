@@ -37,8 +37,8 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
   const imageUrl = firstImage ? getImageUrl(firstImage) : "/placeholder.svg";
 
   const isVi = (i18n.language || "vi").toLowerCase().startsWith("vi");
-  const wardName = isVi ? apt?.ward?.fullName : (apt?.ward?.fullNameEn || apt?.ward?.fullName);
-  const provinceName = isVi ? apt?.province?.fullName : (apt?.province?.fullName);
+  const wardName = isVi ? apt?.ward?.name : (apt?.ward?.nameEn || apt?.ward?.name);
+  const provinceName = isVi ? apt?.province?.name : (apt?.province?.nameEn || apt?.province?.name);
   const locationParts = [wardName, provinceName].filter(Boolean);
   const locationText = locationParts.length > 0 ? locationParts.join(", ") : "Đang cập nhật";
 
@@ -49,8 +49,6 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
   const statsParts: string[] = [];
   if (apartmentSize != null && apartmentSize > 0) statsParts.push(`${apartmentSize}m²`);
   if (roomCount != null && roomCount > 0) statsParts.push(`${roomCount} ${t("listing.rooms")}`);
-  // Mobile: type joined with size/rooms on same line
-  const statsPartsMobile: string[] = [typeName, ...statsParts];
 
   const formatRelativeTime = (dateStr?: string) => {
     if (!dateStr) return "";
