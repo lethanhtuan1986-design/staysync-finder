@@ -186,7 +186,7 @@ const PropertyDetail = () => {
               <div className="flex items-start gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="inline-block text-xs font-bold uppercase tracking-wider text-primary bg-accent px-2 py-1 rounded">
+                    <span className="inline-block text-xs font-bold uppercase tracking-wider text-primary bg-accent px-2 py-1 rounded lg:hidden">
                       {apt.apartmentTypeUu?.name || t("listing.room")}
                     </span>
                     <div className="flex items-center gap-2 shrink-0">
