@@ -29,14 +29,17 @@ interface AdvertisementCardProps {
 const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, priority = false }: AdvertisementCardProps) => {
   const [imgLoaded, setImgLoaded] = useState(false);
   const { isSaved, toggleSave } = useSavedRooms();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [depositOpen, setDepositOpen] = useState(false);
   const apt = data?.apartmentUu;
   const firstImage = data?.images?.[0];
   const imageUrl = firstImage ? getImageUrl(firstImage) : "/placeholder.svg";
 
-  const locationParts = [apt?.ward?.fullName, apt?.province?.fullName].filter(Boolean);
+  const isVi = (i18n.language || "vi").toLowerCase().startsWith("vi");
+  const wardName = isVi ? apt?.ward?.fullName : (apt?.ward?.fullNameEn || apt?.ward?.fullName);
+  const provinceName = isVi ? apt?.province?.fullName : (apt?.province?.fullName);
+  const locationParts = [wardName, provinceName].filter(Boolean);
   const locationText = locationParts.length > 0 ? locationParts.join(", ") : "Đang cập nhật";
 
   const typeName = apt?.apartmentTypeUu?.name || t("listing.room");
@@ -46,6 +49,8 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
   const statsParts: string[] = [];
   if (apartmentSize != null && apartmentSize > 0) statsParts.push(`${apartmentSize}m²`);
   if (roomCount != null && roomCount > 0) statsParts.push(`${roomCount} ${t("listing.rooms")}`);
+  // Mobile: type joined with size/rooms on same line
+  const statsPartsMobile: string[] = [typeName, ...statsParts];
 
   const formatRelativeTime = (dateStr?: string) => {
     if (!dateStr) return "";
@@ -107,11 +112,11 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
                 className={isSaved(data?.uuid) ? "fill-destructive text-destructive" : "text-muted-foreground"}
               />
             </button>
-            <div className="absolute top-3 left-3 bg-card/90 backdrop-blur px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider text-foreground">
+            <div className="hidden sm:block absolute top-3 left-3 bg-card/90 backdrop-blur px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider text-foreground">
               {typeName}
             </div>
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent pt-8 pb-3 px-4">
-              <span className="text-white font-bold text-lg drop-shadow-sm">
+              <span className="text-white font-bold text-base sm:text-lg drop-shadow-sm whitespace-nowrap [font-size:clamp(0.8rem,3.6vw,1.125rem)] sm:[font-size:1.125rem]">
                 {formatVNPrice(data?.price ?? 0)}
                 <span className="text-white/80 text-sm font-normal">{t("listing.perMonth")}</span>
               </span>
@@ -133,8 +138,13 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
 
 
 
-            {showMeta && (
+            {(showMeta || (apt?.avgStars != null && apt.avgStars > 0)) && (
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                {apt?.avgStars != null && apt.avgStars > 0 && (
+                  <span className="flex items-center gap-1 text-yellow-500">
+                    ★ {apt.avgStars}
+                  </span>
+                )}
                 {viewCount != null && viewCount > 0 && (
                   <span className="flex items-center gap-1">
                     <Eye size={12} />
@@ -150,12 +160,15 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
               </div>
             )}
 
+            {/* Mobile: type + size + rooms on one line */}
+            <div className="sm:hidden bg-secondary rounded-lg px-3 py-2 text-xs text-muted-foreground font-medium">
+              {statsPartsMobile.join(" • ")}
+            </div>
+
+            {/* Desktop: only size + rooms */}
             {statsParts.length > 0 && (
-              <div className="bg-secondary rounded-lg px-3 py-2 text-xs text-muted-foreground font-medium">
+              <div className="hidden sm:block bg-secondary rounded-lg px-3 py-2 text-xs text-muted-foreground font-medium">
                 {statsParts.join(" • ")}
-                {apt?.avgStars != null && apt.avgStars > 0 && (
-                  <span className="float-right text-yellow-500">★ {apt.avgStars}</span>
-                )}
               </div>
             )}
 
