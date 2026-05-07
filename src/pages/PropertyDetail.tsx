@@ -30,6 +30,7 @@ import {
   Droplets,
   Bed,
   Sofa,
+  BadgePercent,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
