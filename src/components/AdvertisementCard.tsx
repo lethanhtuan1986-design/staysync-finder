@@ -110,11 +110,11 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
                 className={isSaved(data?.uuid) ? "fill-destructive text-destructive" : "text-muted-foreground"}
               />
             </button>
-            <div className="hidden sm:block absolute top-3 left-3 bg-card/90 backdrop-blur px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider text-foreground">
+            <div className="hidden sm:block absolute bottom-3 right-3 bg-card/90 backdrop-blur px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider text-foreground">
               {typeName}
             </div>
             {data?.isJoinPromo === 1 && (
-              <div className="hidden sm:flex absolute bottom-3 right-3 items-center gap-1 bg-emerald-600 text-white px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-md">
+              <div className="hidden sm:flex absolute top-3 left-3 items-center gap-1 bg-emerald-600 text-white px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-md">
                 <BadgePercent size={12} />
                 {t("listing.promo")}
               </div>
