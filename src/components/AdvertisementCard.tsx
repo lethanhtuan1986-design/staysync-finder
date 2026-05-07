@@ -124,10 +124,7 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
               <span className="truncate">{locationText}</span>
             </p>
 
-            <p className="text-muted-foreground text-sm flex items-center gap-1.5">
-              <MapPin size={14} className="shrink-0 text-primary" />
-              <span className="truncate">{locationText}</span>
-            </p>
+
 
             {showMeta && (
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
