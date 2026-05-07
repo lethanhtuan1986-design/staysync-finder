@@ -119,6 +119,13 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
           </div>
 
           <div className="py-1 sm:p-4 space-y-1.5 sm:space-y-2 flex-1 min-w-0 sm:flex-initial">
+            <h3
+              className="hidden sm:block font-semibold text-foreground text-sm truncate"
+              title={data?.title || ""}
+            >
+              {data?.title || "Đang cập nhật"}
+            </h3>
+
             <p className="text-muted-foreground text-sm flex items-center gap-1.5">
               <MapPin size={14} className="shrink-0 text-primary" />
               <span className="truncate">{locationText}</span>
