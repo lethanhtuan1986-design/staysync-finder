@@ -23,12 +23,16 @@ export interface OwnerUu extends BaseEntity {
 
 export interface ProvinceInfo {
   code: string;
+  name: string;
+  nameEn: string;
   fullName: string;
   fullNameEn: string;
 }
 
 export interface WardInfo {
   code: string;
+  name: string;
+  nameEn: string;
   fullName: string;
   fullNameEn: string;
   provinceCode: string;
