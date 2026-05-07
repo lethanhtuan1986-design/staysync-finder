@@ -392,8 +392,8 @@ const SearchPage = () => {
               biasRadiusKm={bias?.radiusKm}
             />
 
-            {/* Row 2: Sort + Map + Advanced filter - grid 3 cols */}
-            <div className="grid grid-cols-3 gap-2">
+            {/* Row 2: Sort + Advanced filter - grid 2 cols */}
+            <div className="grid grid-cols-2 gap-2">
               {/* Sort */}
               <Select value={typeOrder} onValueChange={setTypeOrder}>
                 <SelectTrigger className="h-10 text-xs rounded-lg bg-secondary/50 border border-border">
@@ -412,15 +412,6 @@ const SearchPage = () => {
                   ))}
                 </SelectContent>
               </Select>
-
-              {/* Map button */}
-              <button
-                onClick={goToMapView}
-                className="flex items-center justify-center gap-1.5 h-10 rounded-lg bg-secondary/50 border border-border text-sm font-medium text-foreground hover:bg-secondary transition-colors"
-              >
-                <MapIcon size={14} />
-                <span>{t("search.map")}</span>
-              </button>
 
               {/* Advanced filter */}
               <button
