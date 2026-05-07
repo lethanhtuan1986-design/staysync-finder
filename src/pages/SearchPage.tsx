@@ -587,7 +587,7 @@ const SearchPage = () => {
 };
 
 type FilterFieldsProps = {
-  t: (k: string, d?: string) => string;
+  t: any;
   provinceId: string;
   wards: WardItem[];
   wardsLoading: boolean;
