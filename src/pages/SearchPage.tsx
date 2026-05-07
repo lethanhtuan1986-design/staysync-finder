@@ -364,34 +364,6 @@ const SearchPage = () => {
               </SelectContent>
             </Select>
 
-            {/* Advanced filter */}
-            <button
-              onClick={() => setAdvancedOpen(true)}
-              className={cn(
-                "relative flex items-center gap-1.5 px-3 rounded-lg text-sm font-medium transition-colors h-11",
-                activeFilterCount > 0
-                  ? "bg-primary/10 text-primary border border-primary/20"
-                  : "border border-border text-muted-foreground hover:text-foreground hover:bg-secondary",
-              )}
-            >
-              <SlidersHorizontal size={16} />
-              <span>{t("hero.advancedFilters")}</span>
-              {activeFilterCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-
-            {/* Map button */}
-            <button
-              onClick={goToMapView}
-              className="flex items-center gap-1.5 px-3 rounded-lg border border-primary/30 text-primary text-sm font-medium hover:bg-primary/5 transition-colors h-11"
-            >
-              <MapIcon size={16} />
-              <span>{t("search.map")}</span>
-            </button>
-
             {/* Result count */}
             <div className="flex items-center gap-2 ml-auto shrink-0">
               <p className="text-sm text-foreground font-medium whitespace-nowrap">
