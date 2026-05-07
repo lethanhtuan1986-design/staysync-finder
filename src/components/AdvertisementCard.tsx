@@ -37,8 +37,8 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
   const imageUrl = firstImage ? getImageUrl(firstImage) : "/placeholder.svg";
 
   const isVi = (i18n.language || "vi").toLowerCase().startsWith("vi");
-  const wardName = isVi ? apt?.ward?.fullName : (apt?.ward?.fullNameEn || apt?.ward?.fullName);
-  const provinceName = isVi ? apt?.province?.fullName : (apt?.province?.fullName);
+  const wardName = isVi ? apt?.ward?.name : (apt?.ward?.nameEn || apt?.ward?.name);
+  const provinceName = isVi ? apt?.province?.name : (apt?.province?.nameEn || apt?.province?.name);
   const locationParts = [wardName, provinceName].filter(Boolean);
   const locationText = locationParts.length > 0 ? locationParts.join(", ") : "Đang cập nhật";
 
@@ -49,8 +49,6 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
   const statsParts: string[] = [];
   if (apartmentSize != null && apartmentSize > 0) statsParts.push(`${apartmentSize}m²`);
   if (roomCount != null && roomCount > 0) statsParts.push(`${roomCount} ${t("listing.rooms")}`);
-  // Mobile: type joined with size/rooms on same line
-  const statsPartsMobile: string[] = [typeName, ...statsParts];
 
   const formatRelativeTime = (dateStr?: string) => {
     if (!dateStr) return "";
@@ -160,14 +158,14 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
               </div>
             )}
 
-            {/* Mobile: type + size + rooms on one line */}
-            <div className="sm:hidden bg-secondary rounded-lg px-3 py-2 text-xs text-muted-foreground font-medium">
-              {statsPartsMobile.join(" • ")}
+            {/* Mobile: loại phòng riêng 1 dòng */}
+            <div className="sm:hidden text-xs text-muted-foreground font-medium">
+              {typeName}
             </div>
 
-            {/* Desktop: only size + rooms */}
+            {/* Size + rooms */}
             {statsParts.length > 0 && (
-              <div className="hidden sm:block bg-secondary rounded-lg px-3 py-2 text-xs text-muted-foreground font-medium">
+              <div className="bg-secondary rounded-lg px-3 py-2 text-xs text-muted-foreground font-medium">
                 {statsParts.join(" • ")}
               </div>
             )}
