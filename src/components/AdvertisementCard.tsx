@@ -1,6 +1,6 @@
 import { memo, useState } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Heart, CalendarCheck, Smartphone, Eye, Clock } from "lucide-react";
+import { MapPin, Heart, CalendarCheck, Smartphone, Eye, Clock, BadgePercent } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { AdvertisementData } from "@/services/advertisement.service";
@@ -113,6 +113,12 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
             <div className="hidden sm:block absolute top-3 left-3 bg-card/90 backdrop-blur px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider text-foreground">
               {typeName}
             </div>
+            {data?.isJoinPromo === 1 && (
+              <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-destructive text-destructive-foreground px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-md">
+                <BadgePercent size={12} />
+                {t("listing.promo")}
+              </div>
+            )}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent pt-8 pb-3 px-4">
               <span className="text-white font-bold text-base sm:text-lg drop-shadow-sm whitespace-nowrap [font-size:clamp(0.8rem,3.6vw,1.125rem)] sm:[font-size:1.125rem]">
                 {formatVNPrice(data?.price ?? 0)}
