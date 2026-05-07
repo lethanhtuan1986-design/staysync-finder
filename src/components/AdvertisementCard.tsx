@@ -229,7 +229,6 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
                 </DialogContent>
               </Dialog>
             </div>
-          </div>
         </div>
       </Link>
     </motion.div>
