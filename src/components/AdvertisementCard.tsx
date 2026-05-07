@@ -169,9 +169,9 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
           </div>
           </div>
 
-            {/* Title - below image/info row, above action buttons */}
+            {/* Title - mobile only, between info and action buttons */}
             <h3
-              className="font-semibold text-foreground text-sm px-3 sm:px-4 line-clamp-2"
+              className="sm:hidden font-semibold text-foreground text-sm px-3 line-clamp-2"
               title={data?.title || ""}
             >
               {data?.title || "Đang cập nhật"}
