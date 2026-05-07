@@ -73,7 +73,7 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
     >
       <Link to={`/advertisement/${data?.uuid}`} className="block overflow-hidden">
         <div className="bg-card rounded-2xl overflow-hidden border border-border card-hover flex flex-row sm:block">
-          <div className="relative w-[42%] shrink-0 aspect-[4/5] sm:w-full sm:aspect-[3/2] overflow-hidden bg-muted">
+          <div className="relative w-[42%] shrink-0 aspect-[4/3] sm:w-full sm:aspect-[3/2] overflow-hidden bg-muted">
             {!imgLoaded && (
               <Skeleton className="absolute inset-0 w-full h-full rounded-none" />
             )}
@@ -161,7 +161,7 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
             )}
 
             {/* Action buttons */}
-            <div className="flex flex-col sm:flex-row gap-2 pt-1">
+            <div className="flex flex-row gap-2 pt-1">
               {/* Schedule button */}
               <Dialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
                 <DialogTrigger asChild>
