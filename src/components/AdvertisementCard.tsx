@@ -161,8 +161,11 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
               </p>
             )}
 
-            {/* Action buttons */}
-            <div className="flex flex-row gap-2 pt-1">
+          </div>
+          </div>
+
+            {/* Action buttons - row 3, full width below */}
+            <div className="flex flex-row gap-2 px-3 pb-3 sm:px-4 sm:pb-4">
               {/* Schedule button */}
               <Dialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
                 <DialogTrigger asChild>
