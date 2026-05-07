@@ -162,8 +162,16 @@ const AdvertisementCardImpl = ({ data, index = 0, showScheduleButton = false, pr
           </div>
           </div>
 
+            {/* Title - below image/info row, above action buttons */}
+            <h3
+              className="font-semibold text-foreground text-sm px-3 sm:px-4 line-clamp-2"
+              title={data?.title || ""}
+            >
+              {data?.title || "Đang cập nhật"}
+            </h3>
+
             {/* Action buttons - row 3, full width below */}
-            <div className="flex flex-row gap-2 px-3 pb-3 sm:px-4 sm:pb-4">
+            <div className="flex flex-row gap-2 px-3 pb-3 pt-2 sm:px-4 sm:pb-4">
               {/* Schedule button */}
               <Dialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
                 <DialogTrigger asChild>
