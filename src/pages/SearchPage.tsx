@@ -528,7 +528,7 @@ const SearchPage = () => {
               )}
 
               {loading && advertisements.length === 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
                   {Array.from({ length: PAGE_SIZE }).map((_, i) => (
                     <div key={i} className="bg-card rounded-2xl overflow-hidden border border-border">
                       <Skeleton className="aspect-[3/2] w-full" />
@@ -544,7 +544,7 @@ const SearchPage = () => {
 
               {advertisements.length > 0 && (
                 <>
-                  <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
                     {advertisements.map((ad: any, i: number) => (
                       <AdvertisementCard key={ad.uuid} data={ad} index={i} priority={i < 6} />
                     ))}
