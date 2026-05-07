@@ -236,6 +236,26 @@ const PropertyDetail = () => {
                   </span>
                 )}
               </div>
+
+              {/* Promo on PC - swapped position with apartment type */}
+              {detail.isJoinPromo === 1 && (
+                <div className="hidden lg:block rounded-xl border border-emerald-600/30 bg-emerald-600/5 p-4 space-y-2 mt-4">
+                  <h3 className="font-semibold text-foreground flex items-center gap-2">
+                    <BadgePercent size={18} className="text-emerald-600" />
+                    {t("detail.promoTitle")}
+                  </h3>
+                  <ul className="text-sm text-muted-foreground space-y-1.5">
+                    <li className="flex items-start gap-2">
+                      <Check size={14} className="text-emerald-600 mt-1 shrink-0" />
+                      <span>{t("detail.promo6m")}</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check size={14} className="text-emerald-600 mt-1 shrink-0" />
+                      <span>{t("detail.promo12m")}</span>
+                    </li>
+                  </ul>
+                </div>
+              )}
             </motion.div>
 
             {descriptionText && (
