@@ -437,6 +437,8 @@ const SearchPage = () => {
               {loading && <Loader2 size={14} className="animate-spin text-muted-foreground" />}
             </div>
           </div>
+        </div>
+      </div>
 
       {/* Reusable advanced filter content */}
       {(() => null)()}
