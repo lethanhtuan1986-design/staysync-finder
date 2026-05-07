@@ -373,38 +373,34 @@ const SearchPage = () => {
             </div>
           </div>
 
-          {/* Mobile: 3-row layout */}
+          {/* Mobile: search + icon buttons inline, then result count */}
           <div className="flex flex-col gap-3 md:hidden">
-            {/* Row 1: Search input full width with autocomplete */}
-            <LocationAutocomplete
-              value={keyword}
-              onChange={handleKeywordChange}
-              onSelectLocation={handleLocationSelect}
-              onSubmitKeyword={handleSubmitKeyword}
-              
-              enrichSuffix={enrichSuffix}
-              radiusKm={radiusKm}
-              placeholder={t("search.keywordPlaceholder")}
-              className="w-full"
-              inputClassName="h-12"
-              biasLat={bias?.lat}
-              biasLng={bias?.lng}
-              biasRadiusKm={bias?.radiusKm}
-            />
+            {/* Row 1: Search input + Sort icon + Filter icon */}
+            <div className="flex items-center gap-2">
+              <LocationAutocomplete
+                value={keyword}
+                onChange={handleKeywordChange}
+                onSelectLocation={handleLocationSelect}
+                onSubmitKeyword={handleSubmitKeyword}
+                enrichSuffix={enrichSuffix}
+                radiusKm={radiusKm}
+                placeholder={t("search.keywordPlaceholder")}
+                className="flex-1 min-w-0"
+                inputClassName="h-10"
+                biasLat={bias?.lat}
+                biasLng={bias?.lng}
+                biasRadiusKm={bias?.radiusKm}
+              />
 
-            {/* Row 2: Sort + Advanced filter - grid 2 cols */}
-            <div className="grid grid-cols-2 gap-2">
-              {/* Sort */}
+              {/* Sort - icon only */}
               <Select value={typeOrder} onValueChange={setTypeOrder}>
-                <SelectTrigger className="h-10 text-xs rounded-lg bg-secondary/50 border border-border">
-                  <div className="flex items-center justify-center gap-1">
-                    <ArrowUpDown size={14} />
-                    <span className="truncate">
-                      {SORT_OPTIONS.find((o) => o.value === typeOrder)?.label || "Sắp xếp"}
-                    </span>
-                  </div>
+                <SelectTrigger
+                  aria-label="Sắp xếp"
+                  className="w-10 h-10 shrink-0 p-0 justify-center rounded-lg bg-secondary/50 border border-border [&>svg:last-child]:hidden"
+                >
+                  <ArrowUpDown size={16} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent align="end">
                   {SORT_OPTIONS.map((opt) => (
                     <SelectItem key={opt.value} value={opt.value}>
                       {opt.label}
@@ -413,18 +409,18 @@ const SearchPage = () => {
                 </SelectContent>
               </Select>
 
-              {/* Advanced filter */}
+              {/* Advanced filter - icon only */}
               <button
                 onClick={() => setAdvancedOpen(true)}
+                aria-label={t("hero.advancedFilters")}
                 className={cn(
-                  "relative flex items-center justify-center gap-1.5 h-10 rounded-lg text-sm font-medium transition-colors",
+                  "relative flex items-center justify-center w-10 h-10 shrink-0 rounded-lg transition-colors",
                   activeFilterCount > 0
                     ? "bg-primary/10 text-primary border border-primary/20"
                     : "bg-secondary/50 border border-border text-foreground hover:bg-secondary",
                 )}
               >
-                <SlidersHorizontal size={14} />
-                <span>{t("hero.advancedFilters")}</span>
+                <SlidersHorizontal size={16} />
                 {activeFilterCount > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
                     {activeFilterCount}
@@ -433,7 +429,7 @@ const SearchPage = () => {
               </button>
             </div>
 
-            {/* Row 3: Result count */}
+            {/* Row 2: Result count */}
             <div className="flex items-center gap-2 text-left">
               <p className="text-sm text-muted-foreground font-medium">
                 {totalCount} {t("search.found")}
@@ -441,8 +437,6 @@ const SearchPage = () => {
               {loading && <Loader2 size={14} className="animate-spin text-muted-foreground" />}
             </div>
           </div>
-        </div>
-      </div>
 
       {/* Reusable advanced filter content */}
       {(() => null)()}
