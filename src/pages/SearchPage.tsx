@@ -444,110 +444,33 @@ const SearchPage = () => {
         </div>
       </div>
 
-      {/* Advanced filter dialog */}
+      {/* Reusable advanced filter content */}
+      {(() => null)()}
+
+      {/* Advanced filter dialog (mobile only) */}
       <Dialog open={advancedOpen} onOpenChange={setAdvancedOpen}>
-        <DialogContent className="sm:max-w-lg rounded-2xl">
+        <DialogContent className="sm:max-w-lg rounded-2xl lg:hidden">
           <DialogHeader>
             <DialogTitle>{t("hero.advancedFilters")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{t("hero.ward")}</label>
-              <Select
-                value={wardId || "__all__"}
-                onValueChange={(val) => setWardId(val === "__all__" ? "" : val)}
-                disabled={!provinceId || (wardsLoading && wards.length === 0)}
-              >
-                <SelectTrigger className="w-full h-11">
-                  <SelectValue
-                    placeholder={
-                      !provinceId ? t("hero.selectAreaFirst") : wardsLoading ? t("search.loading") : t("search.all")
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">{t("search.all")}</SelectItem>
-                  {wards.map((w) => (
-                    <SelectItem key={w.code} value={w.code}>
-                      {formatLocationLabel(w)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {apartmentTypes.length > 0 && (
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">{t("hero.roomType")}</label>
-                <Select
-                  value={apartmentTypeUuid || "__all__"}
-                  onValueChange={(val) => setApartmentTypeUuid(val === "__all__" ? "" : val)}
-                >
-                  <SelectTrigger className="w-full h-11">
-                    <SelectValue placeholder={t("hero.allTypes")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__all__">{t("hero.allTypes")}</SelectItem>
-                    {apartmentTypes.map((at) => (
-                      <SelectItem key={at.uuid} value={at.uuid}>
-                        {at.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{t("hero.priceRange")}</label>
-              <Select value={selectedPriceUuid || "__all__"} onValueChange={handlePriceSelect}>
-                <SelectTrigger className="w-full h-11">
-                  <SelectValue placeholder={t("hero.allPrices")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">{t("hero.allPrices")}</SelectItem>
-                  {filterPrices.map((fp) => (
-                    <SelectItem key={fp.uuid} value={fp.uuid}>
-                      {fp.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">{t("hero.areaSize")}</label>
-              <Select value={selectedSizeUuid || "__all__"} onValueChange={handleSizeSelect}>
-                <SelectTrigger className="w-full h-11">
-                  <SelectValue placeholder={t("hero.allSizes")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">{t("hero.allSizes")}</SelectItem>
-                  {filterApartmentSizes.map((fs) => (
-                    <SelectItem key={fs.uuid} value={fs.uuid}>
-                      {fs.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">Bán kính tìm kiếm</label>
-              <Select value={String(radiusKm)} onValueChange={(val) => setRadiusKm(Number(val))}>
-                <SelectTrigger className="w-full h-11">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {RADIUS_OPTIONS.map((r) => (
-                    <SelectItem key={r.value} value={String(r.value)}>
-                      {r.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
+            <FilterFields
+              t={t}
+              provinceId={provinceId}
+              wards={wards}
+              wardsLoading={wardsLoading}
+              wardId={wardId}
+              setWardId={setWardId}
+              apartmentTypes={apartmentTypes}
+              apartmentTypeUuid={apartmentTypeUuid}
+              setApartmentTypeUuid={setApartmentTypeUuid}
+              selectedPriceUuid={selectedPriceUuid}
+              handlePriceSelect={handlePriceSelect}
+              selectedSizeUuid={selectedSizeUuid}
+              handleSizeSelect={handleSizeSelect}
+              radiusKm={radiusKm}
+              setRadiusKm={setRadiusKm}
+            />
             <button
               onClick={() => setAdvancedOpen(false)}
               className="w-full bg-primary text-primary-foreground py-2.5 rounded-xl font-medium hover:bg-primary/90 transition-colors"
@@ -562,24 +485,36 @@ const SearchPage = () => {
       <div className="flex-1">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex gap-4">
-            {/* Left sidebar: Map + Ad banner */}
-            <aside className="hidden lg:block w-[260px] shrink-0">
-              <div className="sticky top-[calc(4rem+5rem)] space-y-5">
-                {/* Mini Map */}
-                <div
-                  className="rounded-xl overflow-hidden border border-border cursor-pointer group"
-                  onClick={goToMapView}
-                  title={t("search.openMapView")}
-                >
-                  <div className="h-[224px] relative">
-                    <MiniMapPreview locations={[]} loading={loading} />
-                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/45 transition-colors flex items-center justify-center">
-                      <span className="bg-primary text-primary-foreground px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 shadow-lg group-hover:scale-105 transition-transform">
-                        <MapIcon size={14} />
-                        {t("search.openMapView")}
-                      </span>
-                    </div>
-                  </div>
+            {/* Left sidebar: Advanced filter (desktop only, own scroll) */}
+            <aside className="hidden lg:block w-[280px] shrink-0">
+              <div className="sticky top-[calc(4rem+5rem)] rounded-xl border border-border bg-card overflow-hidden">
+                <div className="px-4 py-3 border-b border-border flex items-center gap-2">
+                  <SlidersHorizontal size={16} className="text-primary" />
+                  <h2 className="text-sm font-semibold text-foreground">{t("hero.advancedFilters")}</h2>
+                  {activeFilterCount > 0 && (
+                    <span className="ml-auto w-5 h-5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </div>
+                <div className="p-4 space-y-4 max-h-[calc(100vh-12rem)] overflow-y-auto">
+                  <FilterFields
+                    t={t}
+                    provinceId={provinceId}
+                    wards={wards}
+                    wardsLoading={wardsLoading}
+                    wardId={wardId}
+                    setWardId={setWardId}
+                    apartmentTypes={apartmentTypes}
+                    apartmentTypeUuid={apartmentTypeUuid}
+                    setApartmentTypeUuid={setApartmentTypeUuid}
+                    selectedPriceUuid={selectedPriceUuid}
+                    handlePriceSelect={handlePriceSelect}
+                    selectedSizeUuid={selectedSizeUuid}
+                    handleSizeSelect={handleSizeSelect}
+                    radiusKm={radiusKm}
+                    setRadiusKm={setRadiusKm}
+                  />
                 </div>
               </div>
             </aside>
@@ -593,7 +528,7 @@ const SearchPage = () => {
               )}
 
               {loading && advertisements.length === 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5">
                   {Array.from({ length: PAGE_SIZE }).map((_, i) => (
                     <div key={i} className="bg-card rounded-2xl overflow-hidden border border-border">
                       <Skeleton className="aspect-[3/2] w-full" />
@@ -609,7 +544,7 @@ const SearchPage = () => {
 
               {advertisements.length > 0 && (
                 <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5">
                     {advertisements.map((ad: any, i: number) => (
                       <AdvertisementCard key={ad.uuid} data={ad} index={i} priority={i < 6} />
                     ))}
@@ -650,5 +585,140 @@ const SearchPage = () => {
     </div>
   );
 };
+
+type FilterFieldsProps = {
+  t: (k: string, d?: string) => string;
+  provinceId: string;
+  wards: WardItem[];
+  wardsLoading: boolean;
+  wardId: string;
+  setWardId: (v: string) => void;
+  apartmentTypes: ApartmentTypeItem[];
+  apartmentTypeUuid: string;
+  setApartmentTypeUuid: (v: string) => void;
+  selectedPriceUuid: string;
+  handlePriceSelect: (uuid: string) => void;
+  selectedSizeUuid: string;
+  handleSizeSelect: (uuid: string) => void;
+  radiusKm: number;
+  setRadiusKm: (v: number) => void;
+};
+
+const FilterFields = ({
+  t,
+  provinceId,
+  wards,
+  wardsLoading,
+  wardId,
+  setWardId,
+  apartmentTypes,
+  apartmentTypeUuid,
+  setApartmentTypeUuid,
+  selectedPriceUuid,
+  handlePriceSelect,
+  selectedSizeUuid,
+  handleSizeSelect,
+  radiusKm,
+  setRadiusKm,
+}: FilterFieldsProps) => (
+  <>
+    <div className="space-y-1.5">
+      <label className="text-sm font-medium text-foreground">{t("hero.ward")}</label>
+      <Select
+        value={wardId || "__all__"}
+        onValueChange={(val) => setWardId(val === "__all__" ? "" : val)}
+        disabled={!provinceId || (wardsLoading && wards.length === 0)}
+      >
+        <SelectTrigger className="w-full h-11">
+          <SelectValue
+            placeholder={
+              !provinceId ? t("hero.selectAreaFirst") : wardsLoading ? t("search.loading") : t("search.all")
+            }
+          />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__all__">{t("search.all")}</SelectItem>
+          {wards.map((w) => (
+            <SelectItem key={w.code} value={w.code}>
+              {formatLocationLabel(w)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+
+    {apartmentTypes.length > 0 && (
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium text-foreground">{t("hero.roomType")}</label>
+        <Select
+          value={apartmentTypeUuid || "__all__"}
+          onValueChange={(val) => setApartmentTypeUuid(val === "__all__" ? "" : val)}
+        >
+          <SelectTrigger className="w-full h-11">
+            <SelectValue placeholder={t("hero.allTypes")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">{t("hero.allTypes")}</SelectItem>
+            {apartmentTypes.map((at) => (
+              <SelectItem key={at.uuid} value={at.uuid}>
+                {at.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    )}
+
+    <div className="space-y-1.5">
+      <label className="text-sm font-medium text-foreground">{t("hero.priceRange")}</label>
+      <Select value={selectedPriceUuid || "__all__"} onValueChange={handlePriceSelect}>
+        <SelectTrigger className="w-full h-11">
+          <SelectValue placeholder={t("hero.allPrices")} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__all__">{t("hero.allPrices")}</SelectItem>
+          {filterPrices.map((fp) => (
+            <SelectItem key={fp.uuid} value={fp.uuid}>
+              {fp.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+
+    <div className="space-y-1.5">
+      <label className="text-sm font-medium text-foreground">{t("hero.areaSize")}</label>
+      <Select value={selectedSizeUuid || "__all__"} onValueChange={handleSizeSelect}>
+        <SelectTrigger className="w-full h-11">
+          <SelectValue placeholder={t("hero.allSizes")} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__all__">{t("hero.allSizes")}</SelectItem>
+          {filterApartmentSizes.map((fs) => (
+            <SelectItem key={fs.uuid} value={fs.uuid}>
+              {fs.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+
+    <div className="space-y-1.5">
+      <label className="text-sm font-medium text-foreground">Bán kính tìm kiếm</label>
+      <Select value={String(radiusKm)} onValueChange={(val) => setRadiusKm(Number(val))}>
+        <SelectTrigger className="w-full h-11">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {RADIUS_OPTIONS.map((r) => (
+            <SelectItem key={r.value} value={String(r.value)}>
+              {r.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  </>
+);
 
 export default SearchPage;
