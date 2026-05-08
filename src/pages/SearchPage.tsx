@@ -206,6 +206,7 @@ const SearchPage = () => {
       apartmentSizeFrom,
       apartmentSizeTo,
       typeOrder,
+      isJoinPromo,
       geoBounds?.neLat,
       geoBounds?.swLat,
     ],
