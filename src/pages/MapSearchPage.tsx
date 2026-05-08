@@ -474,27 +474,44 @@ const MapSearchPage = () => {
       {/* Room type */}
       {apartmentTypes.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
             {t("hero.roomType")}
-          </p>
-          <div className="flex flex-col gap-1.5">
-            {apartmentTypes.map((at) => (
-              <button
-                key={at.uuid}
-                onClick={() => setApartmentTypeUuid((prev) => (prev === at.uuid ? "" : at.uuid))}
-                className={cn(
-                  "px-3 py-2 rounded-lg border text-sm text-left transition-colors",
-                  apartmentTypeUuid === at.uuid
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "border-border bg-background text-foreground hover:bg-secondary",
-                )}
-              >
-                {at.name}
-              </button>
-            ))}
-          </div>
+          </label>
+          <Select
+            value={apartmentTypeUuid || "__all__"}
+            onValueChange={(val) => setApartmentTypeUuid(val === "__all__" ? "" : val)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={t("search.all")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">{t("search.all")}</SelectItem>
+              {apartmentTypes.map((at) => (
+                <SelectItem key={at.uuid} value={at.uuid}>
+                  {at.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
+
+      {/* Khuyến mại */}
+      <div>
+        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+          Khuyến mại
+        </label>
+        <Select value={isJoinPromo || "__all__"} onValueChange={(val) => setIsJoinPromo(val === "__all__" ? "" : val)}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder={t("search.all")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">{t("search.all")}</SelectItem>
+            <SelectItem value="1">Đang khuyến mại</SelectItem>
+            <SelectItem value="0">Không khuyến mại</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Price */}
       <div>
