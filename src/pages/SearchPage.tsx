@@ -172,6 +172,7 @@ const SearchPage = () => {
     if (priceTo) req.priceTo = Number(priceTo);
     if (apartmentSizeFrom) req.apartmentSizeFrom = Number(apartmentSizeFrom);
     if (apartmentSizeTo) req.apartmentSizeTo = Number(apartmentSizeTo);
+    if (isJoinPromo) req.isJoinPromo = Number(isJoinPromo);
     if (geoBounds) {
       req.neLat = geoBounds.neLat;
       req.neLng = geoBounds.neLng;
