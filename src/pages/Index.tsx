@@ -124,7 +124,7 @@ const Index = () => {
       <PromoBannersSection />
 
       {/* Listings */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 sm:mt-14">
         <div className="flex items-end justify-between mb-6">
           <div>
             {/* Tabs: Phòng đề xuất / Phòng mới cập nhật */}
