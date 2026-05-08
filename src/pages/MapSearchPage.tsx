@@ -383,6 +383,7 @@ const MapSearchPage = () => {
     if (priceTo) params.set("priceTo", priceTo);
     if (apartmentSizeFrom) params.set("apartmentSizeFrom", apartmentSizeFrom);
     if (apartmentSizeTo) params.set("apartmentSizeTo", apartmentSizeTo);
+    if (isJoinPromo) params.set("isJoinPromo", isJoinPromo);
     setSearchParams(params, { replace: true });
   }, [
     appliedKeyword,
@@ -393,6 +394,7 @@ const MapSearchPage = () => {
     priceTo,
     apartmentSizeFrom,
     apartmentSizeTo,
+    isJoinPromo,
     setSearchParams,
   ]);
 
