@@ -561,23 +561,21 @@ const MapSearchPage = () => {
 
       {/* Radius */}
       <div>
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Bán kính tìm kiếm</p>
-        <div className="flex flex-col gap-1.5">
-          {RADIUS_OPTIONS.map((r) => (
-            <button
-              key={r.value}
-              onClick={() => setRadiusKm(r.value)}
-              className={cn(
-                "px-3 py-2 rounded-lg border text-sm text-left transition-colors",
-                radiusKm === r.value
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "border-border bg-background text-foreground hover:bg-secondary",
-              )}
-            >
-              {r.label}
-            </button>
-          ))}
-        </div>
+        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+          Bán kính tìm kiếm
+        </label>
+        <Select value={String(radiusKm)} onValueChange={(val) => setRadiusKm(Number(val))}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {RADIUS_OPTIONS.map((r) => (
+              <SelectItem key={r.value} value={String(r.value)}>
+                {r.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
