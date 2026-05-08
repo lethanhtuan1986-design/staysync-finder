@@ -471,6 +471,8 @@ const SearchPage = () => {
               handleSizeSelect={handleSizeSelect}
               radiusKm={radiusKm}
               setRadiusKm={setRadiusKm}
+              isJoinPromo={isJoinPromo}
+              setIsJoinPromo={setIsJoinPromo}
             />
             <button
               onClick={() => setAdvancedOpen(false)}
