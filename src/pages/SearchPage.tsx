@@ -59,6 +59,7 @@ const SearchPage = () => {
   const [keyword, setKeyword] = useState(searchParams.get("q") || "");
   const [appliedKeyword, setAppliedKeyword] = useState(searchParams.get("q") || "");
   const [typeOrder, setTypeOrder] = useState(searchParams.get("typeOrder") || "0");
+  const [isJoinPromo, setIsJoinPromo] = useState(searchParams.get("isJoinPromo") || "");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
   // Mặc định center là null khi vào trang. Chỉ set khi user chọn 1 gợi ý từ autocomplete.
@@ -171,6 +172,7 @@ const SearchPage = () => {
     if (priceTo) req.priceTo = Number(priceTo);
     if (apartmentSizeFrom) req.apartmentSizeFrom = Number(apartmentSizeFrom);
     if (apartmentSizeTo) req.apartmentSizeTo = Number(apartmentSizeTo);
+    if (isJoinPromo) req.isJoinPromo = Number(isJoinPromo);
     if (geoBounds) {
       req.neLat = geoBounds.neLat;
       req.neLng = geoBounds.neLng;
@@ -204,6 +206,7 @@ const SearchPage = () => {
       apartmentSizeFrom,
       apartmentSizeTo,
       typeOrder,
+      isJoinPromo,
       geoBounds?.neLat,
       geoBounds?.swLat,
     ],
@@ -257,6 +260,7 @@ const SearchPage = () => {
     if (apartmentSizeFrom) params.set("apartmentSizeFrom", apartmentSizeFrom);
     if (apartmentSizeTo) params.set("apartmentSizeTo", apartmentSizeTo);
     if (typeOrder !== "0") params.set("typeOrder", typeOrder);
+    if (isJoinPromo) params.set("isJoinPromo", isJoinPromo);
     if (geoBounds) {
       params.set("neLat", String(geoBounds.neLat));
       params.set("neLng", String(geoBounds.neLng));
@@ -274,6 +278,7 @@ const SearchPage = () => {
     apartmentSizeFrom,
     apartmentSizeTo,
     typeOrder,
+    isJoinPromo,
     geoBounds,
     setSearchParams,
   ]);
@@ -318,7 +323,7 @@ const SearchPage = () => {
     navigate(`/search/map?${params.toString()}`);
   };
 
-  const activeFilterCount = [apartmentTypeUuid, selectedPriceUuid, selectedSizeUuid, wardId].filter(Boolean).length;
+  const activeFilterCount = [apartmentTypeUuid, selectedPriceUuid, selectedSizeUuid, wardId, isJoinPromo].filter(Boolean).length;
 
   return (
     <div className="min-h-screen bg-background flex flex-col pt-16">
@@ -466,6 +471,8 @@ const SearchPage = () => {
               handleSizeSelect={handleSizeSelect}
               radiusKm={radiusKm}
               setRadiusKm={setRadiusKm}
+              isJoinPromo={isJoinPromo}
+              setIsJoinPromo={setIsJoinPromo}
             />
             <button
               onClick={() => setAdvancedOpen(false)}
@@ -510,6 +517,8 @@ const SearchPage = () => {
                     handleSizeSelect={handleSizeSelect}
                     radiusKm={radiusKm}
                     setRadiusKm={setRadiusKm}
+                    isJoinPromo={isJoinPromo}
+                    setIsJoinPromo={setIsJoinPromo}
                   />
                 </div>
               </div>
@@ -598,6 +607,8 @@ type FilterFieldsProps = {
   handleSizeSelect: (uuid: string) => void;
   radiusKm: number;
   setRadiusKm: (v: number) => void;
+  isJoinPromo: string;
+  setIsJoinPromo: (v: string) => void;
 };
 
 const FilterFields = ({
@@ -616,6 +627,8 @@ const FilterFields = ({
   handleSizeSelect,
   radiusKm,
   setRadiusKm,
+  isJoinPromo,
+  setIsJoinPromo,
 }: FilterFieldsProps) => (
   <>
     <div className="space-y-1.5">
@@ -711,6 +724,20 @@ const FilterFields = ({
               {r.label}
             </SelectItem>
           ))}
+        </SelectContent>
+      </Select>
+    </div>
+
+    <div className="space-y-1.5">
+      <label className="text-sm font-medium text-foreground">Khuyến mại</label>
+      <Select value={isJoinPromo || "__all__"} onValueChange={(val) => setIsJoinPromo(val === "__all__" ? "" : val)}>
+        <SelectTrigger className="w-full h-11">
+          <SelectValue placeholder="Tất cả" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__all__">Tất cả</SelectItem>
+          <SelectItem value="1">Đang khuyến mại</SelectItem>
+          <SelectItem value="0">Không khuyến mại</SelectItem>
         </SelectContent>
       </Select>
     </div>

@@ -176,6 +176,7 @@ export interface GetListAdvertisementRequest {
   neLng?: number | null;
   swLat?: number | null;
   swLng?: number | null;
+  isJoinPromo?: number;
 }
 
 export interface GetSimilarAdvertisementRequest {
