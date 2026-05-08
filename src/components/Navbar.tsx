@@ -88,7 +88,7 @@ export const Navbar = () => {
                 <Link
                   key={link.to}
                   to={link.to}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-1.5 px-2.5 lg:px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
                     location.pathname === link.to || (link.to.includes('?') && location.pathname === link.to.split('?')[0])
                       ? isTransparent
                         ? 'bg-white/20 text-white'
