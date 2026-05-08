@@ -79,19 +79,19 @@ const BannerCard = ({ b }: { b: PromoBanner }) => (
       height={512}
       className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
     />
-    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
+    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
     {b.badge && (
       <span
-        className={`absolute top-3 left-3 text-[10px] sm:text-xs font-semibold px-2.5 py-1 rounded-full ${toneClasses[b.tone]}`}
+        className={`absolute top-3 right-3 text-[10px] font-semibold px-2 py-0.5 rounded-full ${toneClasses[b.tone]}`}
       >
         {b.badge}
       </span>
     )}
-    <div className="absolute bottom-0 left-0 right-0 p-5">
-      <h3 className="text-base sm:text-lg font-bold mb-1 text-white drop-shadow-md line-clamp-2">{b.title}</h3>
-      <p className="text-xs sm:text-sm text-white/90 mb-3 drop-shadow-sm line-clamp-2">{b.description}</p>
-      <span className="inline-flex items-center gap-1 text-sm font-semibold text-white drop-shadow-sm group-hover:underline">
-        {b.cta} <ArrowRight size={14} />
+    <div className="absolute bottom-0 left-0 right-0 p-3 w-1/2 sm:w-2/5">
+      <h3 className="text-xs sm:text-sm font-bold mb-0.5 text-white drop-shadow-md line-clamp-1">{b.title}</h3>
+      <p className="text-[10px] sm:text-xs text-white/90 mb-1 drop-shadow-sm line-clamp-1">{b.description}</p>
+      <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-white drop-shadow-sm group-hover:underline">
+        {b.cta} <ArrowRight size={10} />
       </span>
     </div>
   </Link>
