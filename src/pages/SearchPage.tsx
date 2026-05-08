@@ -607,6 +607,8 @@ type FilterFieldsProps = {
   handleSizeSelect: (uuid: string) => void;
   radiusKm: number;
   setRadiusKm: (v: number) => void;
+  isJoinPromo: string;
+  setIsJoinPromo: (v: string) => void;
 };
 
 const FilterFields = ({
