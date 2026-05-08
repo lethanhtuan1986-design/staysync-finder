@@ -517,6 +517,8 @@ const SearchPage = () => {
                     handleSizeSelect={handleSizeSelect}
                     radiusKm={radiusKm}
                     setRadiusKm={setRadiusKm}
+                    isJoinPromo={isJoinPromo}
+                    setIsJoinPromo={setIsJoinPromo}
                   />
                 </div>
               </div>
