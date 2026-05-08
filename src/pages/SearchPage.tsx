@@ -59,6 +59,7 @@ const SearchPage = () => {
   const [keyword, setKeyword] = useState(searchParams.get("q") || "");
   const [appliedKeyword, setAppliedKeyword] = useState(searchParams.get("q") || "");
   const [typeOrder, setTypeOrder] = useState(searchParams.get("typeOrder") || "0");
+  const [isJoinPromo, setIsJoinPromo] = useState(searchParams.get("isJoinPromo") || "");
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [radiusKm, setRadiusKm] = useState(DEFAULT_RADIUS_KM);
   // Mặc định center là null khi vào trang. Chỉ set khi user chọn 1 gợi ý từ autocomplete.
