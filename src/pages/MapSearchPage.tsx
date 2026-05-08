@@ -62,6 +62,7 @@ const MapSearchPage = () => {
   const [priceTo, setPriceTo] = useState(searchParams.get("priceTo") || "");
   const [apartmentSizeFrom, setApartmentSizeFrom] = useState(searchParams.get("apartmentSizeFrom") || "");
   const [apartmentSizeTo, setApartmentSizeTo] = useState(searchParams.get("apartmentSizeTo") || "");
+  const [isJoinPromo, setIsJoinPromo] = useState(searchParams.get("isJoinPromo") || "");
   // `keyword` = text trong ô input (không trigger query).
   // `appliedKeyword` = từ khóa đã được user submit (chọn "Tìm …" hoặc Enter).
   const [keyword, setKeyword] = useState(searchParams.get("q") || "");
@@ -220,6 +221,7 @@ const MapSearchPage = () => {
     if (priceTo) req.priceTo = Number(priceTo);
     if (apartmentSizeFrom) req.apartmentSizeFrom = Number(apartmentSizeFrom);
     if (apartmentSizeTo) req.apartmentSizeTo = Number(apartmentSizeTo);
+    if (isJoinPromo) req.isJoinPromo = Number(isJoinPromo);
     if (viewportBounds) {
       req.neLat = viewportBounds.neLat;
       req.neLng = viewportBounds.neLng;
@@ -245,6 +247,7 @@ const MapSearchPage = () => {
       priceTo,
       apartmentSizeFrom,
       apartmentSizeTo,
+      isJoinPromo,
       viewportBounds?.neLat,
       viewportBounds?.neLng,
       viewportBounds?.swLat,
@@ -275,6 +278,7 @@ const MapSearchPage = () => {
     priceTo,
     apartmentSizeFrom,
     apartmentSizeTo,
+    isJoinPromo,
   ]);
 
   // Merge dữ liệu mới vào kho đã tích lũy (dedupe theo point + ad uuid)
@@ -379,6 +383,7 @@ const MapSearchPage = () => {
     if (priceTo) params.set("priceTo", priceTo);
     if (apartmentSizeFrom) params.set("apartmentSizeFrom", apartmentSizeFrom);
     if (apartmentSizeTo) params.set("apartmentSizeTo", apartmentSizeTo);
+    if (isJoinPromo) params.set("isJoinPromo", isJoinPromo);
     setSearchParams(params, { replace: true });
   }, [
     appliedKeyword,
@@ -389,6 +394,7 @@ const MapSearchPage = () => {
     priceTo,
     apartmentSizeFrom,
     apartmentSizeTo,
+    isJoinPromo,
     setSearchParams,
   ]);
 
@@ -418,7 +424,7 @@ const MapSearchPage = () => {
     }
   };
 
-  const activeFilterCount = [apartmentTypeUuid, selectedPriceUuid, selectedSizeUuid].filter(Boolean).length;
+  const activeFilterCount = [apartmentTypeUuid, selectedPriceUuid, selectedSizeUuid, isJoinPromo].filter(Boolean).length;
 
   const filterContent = (
     <div className="space-y-5 p-1">
@@ -468,27 +474,44 @@ const MapSearchPage = () => {
       {/* Room type */}
       {apartmentTypes.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
             {t("hero.roomType")}
-          </p>
-          <div className="flex flex-col gap-1.5">
-            {apartmentTypes.map((at) => (
-              <button
-                key={at.uuid}
-                onClick={() => setApartmentTypeUuid((prev) => (prev === at.uuid ? "" : at.uuid))}
-                className={cn(
-                  "px-3 py-2 rounded-lg border text-sm text-left transition-colors",
-                  apartmentTypeUuid === at.uuid
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "border-border bg-background text-foreground hover:bg-secondary",
-                )}
-              >
-                {at.name}
-              </button>
-            ))}
-          </div>
+          </label>
+          <Select
+            value={apartmentTypeUuid || "__all__"}
+            onValueChange={(val) => setApartmentTypeUuid(val === "__all__" ? "" : val)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={t("search.all")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">{t("search.all")}</SelectItem>
+              {apartmentTypes.map((at) => (
+                <SelectItem key={at.uuid} value={at.uuid}>
+                  {at.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
+
+      {/* Khuyến mại */}
+      <div>
+        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+          Khuyến mại
+        </label>
+        <Select value={isJoinPromo || "__all__"} onValueChange={(val) => setIsJoinPromo(val === "__all__" ? "" : val)}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder={t("search.all")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">{t("search.all")}</SelectItem>
+            <SelectItem value="1">Đang khuyến mại</SelectItem>
+            <SelectItem value="0">Không khuyến mại</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Price */}
       <div>
@@ -538,23 +561,21 @@ const MapSearchPage = () => {
 
       {/* Radius */}
       <div>
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Bán kính tìm kiếm</p>
-        <div className="flex flex-col gap-1.5">
-          {RADIUS_OPTIONS.map((r) => (
-            <button
-              key={r.value}
-              onClick={() => setRadiusKm(r.value)}
-              className={cn(
-                "px-3 py-2 rounded-lg border text-sm text-left transition-colors",
-                radiusKm === r.value
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "border-border bg-background text-foreground hover:bg-secondary",
-              )}
-            >
-              {r.label}
-            </button>
-          ))}
-        </div>
+        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
+          Bán kính tìm kiếm
+        </label>
+        <Select value={String(radiusKm)} onValueChange={(val) => setRadiusKm(Number(val))}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {RADIUS_OPTIONS.map((r) => (
+              <SelectItem key={r.value} value={String(r.value)}>
+                {r.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
