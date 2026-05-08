@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { X, Megaphone } from "lucide-react";
 
 const promoMessages = [
-  "🎉 Ưu đãi đặc biệt: Thanh toán trước 6 tháng giảm 3%, 12 tháng giảm 5%!",
   "📱 Tải app XanhStay để nhận thông báo phòng mới ngay lập tức!",
   "🏠 Đăng phòng miễn phí trên XanhStay — Tiếp cận hàng nghìn người thuê!",
 ];
