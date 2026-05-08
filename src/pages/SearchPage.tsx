@@ -727,6 +727,20 @@ const FilterFields = ({
         </SelectContent>
       </Select>
     </div>
+
+    <div className="space-y-1.5">
+      <label className="text-sm font-medium text-foreground">Khuyến mại</label>
+      <Select value={isJoinPromo || "__all__"} onValueChange={(val) => setIsJoinPromo(val === "__all__" ? "" : val)}>
+        <SelectTrigger className="w-full h-11">
+          <SelectValue placeholder="Tất cả" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__all__">Tất cả</SelectItem>
+          <SelectItem value="1">Đang khuyến mại</SelectItem>
+          <SelectItem value="0">Không khuyến mại</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
   </>
 );
 
