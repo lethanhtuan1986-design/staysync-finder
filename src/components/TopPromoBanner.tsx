@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { X, Megaphone } from "lucide-react";
 
 const promoMessages = [
+  "🎉 Chào mừng đại lễ 30/04 và Quốc tế lao động 01/05!",
   "📱 Tải app XanhStay để nhận thông báo phòng mới ngay lập tức!",
   "🏠 Đăng phòng miễn phí trên XanhStay — Tiếp cận hàng nghìn người thuê!",
 ];
