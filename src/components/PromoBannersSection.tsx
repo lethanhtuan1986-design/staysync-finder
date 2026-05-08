@@ -87,12 +87,14 @@ const BannerCard = ({ b }: { b: PromoBanner }) => (
         {b.badge}
       </span>
     )}
-    <div className="absolute bottom-0 left-0 right-0 p-3 w-1/2 sm:w-2/5">
-      <h3 className="text-xs sm:text-sm font-bold mb-0.5 text-white drop-shadow-md line-clamp-1">{b.title}</h3>
-      <p className="text-[10px] sm:text-xs text-white/90 mb-1 drop-shadow-sm line-clamp-1">{b.description}</p>
-      <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-white drop-shadow-sm group-hover:underline">
-        {b.cta} <ArrowRight size={10} />
-      </span>
+    <div className="absolute bottom-0 left-0 right-0 p-3">
+      <div className="flex items-center justify-between gap-2 mb-1">
+        <h3 className="text-xs sm:text-sm font-bold text-white drop-shadow-md whitespace-nowrap">{b.title}</h3>
+        <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-semibold text-white drop-shadow-sm group-hover:underline shrink-0">
+          {b.cta} <ArrowRight size={10} />
+        </span>
+      </div>
+      <p className="text-[10px] sm:text-xs text-white/90 drop-shadow-sm">{b.description}</p>
     </div>
   </Link>
 );
