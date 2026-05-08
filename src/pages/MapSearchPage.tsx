@@ -247,6 +247,7 @@ const MapSearchPage = () => {
       priceTo,
       apartmentSizeFrom,
       apartmentSizeTo,
+      isJoinPromo,
       viewportBounds?.neLat,
       viewportBounds?.neLng,
       viewportBounds?.swLat,
