@@ -43,7 +43,7 @@ export const TopPromoBanner = () => {
           </div>
         </div>
         <button
-          onClick={() => setVisible(false)}
+          onClick={() => setVisible(true)}
           className="shrink-0 ml-2 mr-1 p-0.5 rounded hover:bg-primary-foreground/20 transition-colors"
           aria-label="Đóng"
         >
