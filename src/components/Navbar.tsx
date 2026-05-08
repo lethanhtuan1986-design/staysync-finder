@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, Heart, Home, Building2, Download, MapPin, ChevronDown } from 'lucide-react';
+import { Search, Heart, Home, Building2, Download, MapPin, ChevronDown, BadgePercent } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { ThemeToggle } from './ThemeToggle';
@@ -53,6 +53,7 @@ export const Navbar = () => {
     { to: '/search', label: t('nav.search'), icon: Search },
     { to: '/search/map', label: t('nav.map'), icon: MapPin },
     { to: '/saved', label: t('nav.saved'), icon: Heart },
+    { to: '/promotions', label: t('nav.promotions', 'Khuyến mại'), icon: BadgePercent },
     { to: '/policy?tab=about', label: t('nav.about'), icon: Building2 },
   ];
 
