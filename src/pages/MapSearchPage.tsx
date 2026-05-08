@@ -461,7 +461,7 @@ const MapSearchPage = () => {
             <SelectTrigger className="w-full">
               <SelectValue placeholder={t("search.all")} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[1400]">
               <SelectItem value="__all__">{t("search.all")}</SelectItem>
               {apartmentTypes.map((at) => (
                 <SelectItem key={at.uuid} value={at.uuid}>
@@ -482,7 +482,7 @@ const MapSearchPage = () => {
           <SelectTrigger className="w-full">
             <SelectValue placeholder={t("search.all")} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="z-[1400]">
             <SelectItem value="__all__">{t("search.all")}</SelectItem>
             <SelectItem value="1">Đang khuyến mại</SelectItem>
             <SelectItem value="0">Không khuyến mại</SelectItem>
@@ -545,7 +545,7 @@ const MapSearchPage = () => {
           <SelectTrigger className="w-full">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="z-[1400]">
             {RADIUS_OPTIONS.map((r) => (
               <SelectItem key={r.value} value={String(r.value)}>
                 {r.label}
