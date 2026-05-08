@@ -278,6 +278,7 @@ const MapSearchPage = () => {
     priceTo,
     apartmentSizeFrom,
     apartmentSizeTo,
+    isJoinPromo,
   ]);
 
   // Merge dữ liệu mới vào kho đã tích lũy (dedupe theo point + ad uuid)
