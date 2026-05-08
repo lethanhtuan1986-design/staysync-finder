@@ -627,6 +627,8 @@ const FilterFields = ({
   handleSizeSelect,
   radiusKm,
   setRadiusKm,
+  isJoinPromo,
+  setIsJoinPromo,
 }: FilterFieldsProps) => (
   <>
     <div className="space-y-1.5">
