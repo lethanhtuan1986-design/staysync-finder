@@ -62,6 +62,7 @@ const MapSearchPage = () => {
   const [priceTo, setPriceTo] = useState(searchParams.get("priceTo") || "");
   const [apartmentSizeFrom, setApartmentSizeFrom] = useState(searchParams.get("apartmentSizeFrom") || "");
   const [apartmentSizeTo, setApartmentSizeTo] = useState(searchParams.get("apartmentSizeTo") || "");
+  const [isJoinPromo, setIsJoinPromo] = useState(searchParams.get("isJoinPromo") || "");
   // `keyword` = text trong ô input (không trigger query).
   // `appliedKeyword` = từ khóa đã được user submit (chọn "Tìm …" hoặc Enter).
   const [keyword, setKeyword] = useState(searchParams.get("q") || "");
