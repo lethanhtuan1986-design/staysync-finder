@@ -260,6 +260,7 @@ const SearchPage = () => {
     if (apartmentSizeFrom) params.set("apartmentSizeFrom", apartmentSizeFrom);
     if (apartmentSizeTo) params.set("apartmentSizeTo", apartmentSizeTo);
     if (typeOrder !== "0") params.set("typeOrder", typeOrder);
+    if (isJoinPromo) params.set("isJoinPromo", isJoinPromo);
     if (geoBounds) {
       params.set("neLat", String(geoBounds.neLat));
       params.set("neLng", String(geoBounds.neLng));
@@ -277,6 +278,7 @@ const SearchPage = () => {
     apartmentSizeFrom,
     apartmentSizeTo,
     typeOrder,
+    isJoinPromo,
     geoBounds,
     setSearchParams,
   ]);
