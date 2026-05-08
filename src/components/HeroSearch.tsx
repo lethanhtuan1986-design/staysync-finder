@@ -151,10 +151,10 @@ export const HeroSearch = () => {
 
   const advancedFilterCount = [wardId, priceUuid, sizeUuid, apartmentTypeUuid].filter(Boolean).length;
 
-  // Ưu tiên fullNameEn để bias Nominatim chính xác hơn.
+  // Ưu tiên nameEn để bias Nominatim chính xác hơn.
   const provinceEnrich =
-    provinces.find((p) => p.code === provinceId)?.fullNameEn ||
-    provinces.find((p) => p.code === provinceId)?.fullName ||
+    provinces.find((p) => p.code === provinceId)?.nameEn ||
+    provinces.find((p) => p.code === provinceId)?.name ||
     provinceName ||
     "";
 
