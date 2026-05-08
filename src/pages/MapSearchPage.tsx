@@ -424,7 +424,7 @@ const MapSearchPage = () => {
     }
   };
 
-  const activeFilterCount = [apartmentTypeUuid, selectedPriceUuid, selectedSizeUuid].filter(Boolean).length;
+  const activeFilterCount = [apartmentTypeUuid, selectedPriceUuid, selectedSizeUuid, isJoinPromo].filter(Boolean).length;
 
   const filterContent = (
     <div className="space-y-5 p-1">
