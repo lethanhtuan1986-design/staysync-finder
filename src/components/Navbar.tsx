@@ -128,7 +128,7 @@ export const Navbar = () => {
             <button
               type="button"
               onClick={handleDownloadClick}
-              className={`ml-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+              className={`ml-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex items-center gap-2 ${
                 isTransparent
                   ? 'border border-white/50 text-white hover:bg-white/10'
                   : 'border border-primary text-primary hover:bg-primary/10'
