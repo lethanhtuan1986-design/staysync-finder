@@ -447,29 +447,6 @@ const MapSearchPage = () => {
         />
       </div>
 
-      {/* Ward */}
-      <div>
-        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
-          {t("hero.ward")}
-        </label>
-        <Select
-          value={wardId || "__all__"}
-          onValueChange={(val) => setWardId(val === "__all__" ? "" : val)}
-          disabled={!provinceId}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder={!provinceId ? t("hero.selectAreaFirst") : t("search.all")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__all__">{t("search.all")}</SelectItem>
-            {wards.map((w) => (
-              <SelectItem key={w.code} value={w.code}>
-                {formatLocationLabel(w)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
 
       {/* Room type */}
       {apartmentTypes.length > 0 && (
@@ -484,7 +461,7 @@ const MapSearchPage = () => {
             <SelectTrigger className="w-full">
               <SelectValue placeholder={t("search.all")} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[1400]">
               <SelectItem value="__all__">{t("search.all")}</SelectItem>
               {apartmentTypes.map((at) => (
                 <SelectItem key={at.uuid} value={at.uuid}>
@@ -505,7 +482,7 @@ const MapSearchPage = () => {
           <SelectTrigger className="w-full">
             <SelectValue placeholder={t("search.all")} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="z-[1400]">
             <SelectItem value="__all__">{t("search.all")}</SelectItem>
             <SelectItem value="1">Đang khuyến mại</SelectItem>
             <SelectItem value="0">Không khuyến mại</SelectItem>
@@ -568,7 +545,7 @@ const MapSearchPage = () => {
           <SelectTrigger className="w-full">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="z-[1400]">
             {RADIUS_OPTIONS.map((r) => (
               <SelectItem key={r.value} value={String(r.value)}>
                 {r.label}
