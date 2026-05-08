@@ -323,7 +323,7 @@ const SearchPage = () => {
     navigate(`/search/map?${params.toString()}`);
   };
 
-  const activeFilterCount = [apartmentTypeUuid, selectedPriceUuid, selectedSizeUuid, wardId].filter(Boolean).length;
+  const activeFilterCount = [apartmentTypeUuid, selectedPriceUuid, selectedSizeUuid, wardId, isJoinPromo].filter(Boolean).length;
 
   return (
     <div className="min-h-screen bg-background flex flex-col pt-16">
