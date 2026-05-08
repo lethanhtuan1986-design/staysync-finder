@@ -447,29 +447,6 @@ const MapSearchPage = () => {
         />
       </div>
 
-      {/* Ward */}
-      <div>
-        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
-          {t("hero.ward")}
-        </label>
-        <Select
-          value={wardId || "__all__"}
-          onValueChange={(val) => setWardId(val === "__all__" ? "" : val)}
-          disabled={!provinceId}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder={!provinceId ? t("hero.selectAreaFirst") : t("search.all")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__all__">{t("search.all")}</SelectItem>
-            {wards.map((w) => (
-              <SelectItem key={w.code} value={w.code}>
-                {formatLocationLabel(w)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
 
       {/* Room type */}
       {apartmentTypes.length > 0 && (
