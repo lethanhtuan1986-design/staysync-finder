@@ -71,6 +71,13 @@ const SearchPage = () => {
   );
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
+  // Khi chọn Phường/Xã thì bỏ lọc theo vị trí bản đồ (lat/lng -> null)
+  useEffect(() => {
+    if (wardId) {
+      setGeoCenter(null);
+    }
+  }, [wardId]);
+
   const selectedPriceUuid =
     filterPrices.find((fp) => String(fp.value || "") === priceFrom && String(fp.valueTo || "") === priceTo)?.uuid || "";
 
