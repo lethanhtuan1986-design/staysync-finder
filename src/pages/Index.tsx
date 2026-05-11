@@ -67,7 +67,7 @@ const Index = () => {
           pageSize: PAGE_SIZE_DEFAULT,
           isHot: 1,
           typeOrder: 0,
-          ...(provinceCode ? { provinceCode } : {}),
+          ...(provinceCode ? { provinceId: provinceCode } : {}),
         }),
       }),
   });
@@ -85,7 +85,7 @@ const Index = () => {
           pageSize: PAGE_SIZE_DEFAULT,
           isHot: 0,
           typeOrder: 0,
-          ...(provinceCode ? { provinceCode } : {}),
+          ...(provinceCode ? { provinceId: provinceCode } : {}),
         }),
       }),
   });
