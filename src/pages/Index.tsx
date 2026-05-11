@@ -50,10 +50,6 @@ const Index = () => {
           pageSize: 100,
           keyword: "",
           status: 1,
-          neLat = null,
-          neLng = null,
-          swLat = null,
-          swLng = null,
         }),
       }),
   });
