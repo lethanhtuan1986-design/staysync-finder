@@ -36,6 +36,7 @@ const Index = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"recommended" | "latest">("recommended");
+  const { provinceCode } = useSelectedProvince();
 
   const { data: apartmentTypesRaw = [] } = useQuery({
     queryKey: ["dropdown-apartment-type"],
@@ -57,7 +58,7 @@ const Index = () => {
   const { data: recommendedData, isLoading: recommendedLoading } = useQuery<{
     items: AdvertisementData[];
   }>({
-    queryKey: ["recommended-advertisements"],
+    queryKey: ["recommended-advertisements", provinceCode ?? ""],
     queryFn: () =>
       httpRequest({
         http: advertisementService.getListPaged({
@@ -66,6 +67,7 @@ const Index = () => {
           pageSize: PAGE_SIZE_DEFAULT,
           isHot: 1,
           typeOrder: 0,
+          ...(provinceCode ? { provinceCode } : {}),
         }),
       }),
   });
@@ -74,7 +76,7 @@ const Index = () => {
   const { data: latestData, isLoading: latestLoading } = useQuery<{
     items: AdvertisementData[];
   }>({
-    queryKey: ["latest-advertisements"],
+    queryKey: ["latest-advertisements", provinceCode ?? ""],
     queryFn: () =>
       httpRequest({
         http: advertisementService.getListPaged({
@@ -83,6 +85,7 @@ const Index = () => {
           pageSize: PAGE_SIZE_DEFAULT,
           isHot: 0,
           typeOrder: 0,
+          ...(provinceCode ? { provinceCode } : {}),
         }),
       }),
   });
