@@ -40,7 +40,7 @@ const AboutSection = () => (
         <h3 className="text-lg font-semibold text-foreground mb-3">Thông tin liên hệ</h3>
         <div className="bg-muted/50 rounded-lg p-5 space-y-2 text-sm text-foreground">
           <p>
-            <span className="font-medium">Số điện thoại:</span> 0982677588
+            <span className="font-medium">Số điện thoại:</span> 096 215 0785
           </p>
           <p>
             <span className="font-medium">Email:</span> xanhstay@gslgroup.vn
