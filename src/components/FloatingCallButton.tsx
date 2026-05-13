@@ -1,6 +1,6 @@
 import { Phone } from 'lucide-react';
 
-const HOTLINE = '19001234'; // Số hotline XanhStay
+const HOTLINE = '0962150785'; // Số hotline XanhStay
 
 export const FloatingCallButton = () => {
   return (
