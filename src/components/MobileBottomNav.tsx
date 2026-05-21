@@ -1,19 +1,16 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, Heart, Building2, MapPin, BadgePercent } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { Home, Search, Heart, MapPin, BadgePercent } from 'lucide-react';
 
 const navItems = [
-  { to: '/', icon: Home, labelKey: 'nav.home' },
-  { to: '/search', icon: Search, labelKey: 'nav.search' },
-  { to: '/search/map', icon: MapPin, labelKey: 'nav.map' },
-  { to: '/promotions', icon: BadgePercent, labelKey: 'nav.promotions', defaultLabel: 'Ưu đãi' },
-  { to: '/saved', icon: Heart, labelKey: 'nav.saved' },
-  { to: '/policy?tab=about', icon: Building2, labelKey: 'nav.about' },
+  { to: '/', icon: Home },
+  { to: '/search', icon: Search },
+  { to: '/search/map', icon: MapPin },
+  { to: '/promotions', icon: BadgePercent },
+  { to: '/saved', icon: Heart },
 ];
 
 export const MobileBottomNav = () => {
   const location = useLocation();
-  const { t } = useTranslation();
 
   const isActive = (to: string) => {
     if (to.includes('?')) {
@@ -31,12 +28,11 @@ export const MobileBottomNav = () => {
             <Link
               key={item.to}
               to={item.to}
-              className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors ${
+              className={`flex items-center justify-center flex-1 h-full transition-colors ${
                 active ? 'text-primary' : 'text-muted-foreground'
               }`}
             >
-              <item.icon size={18} />
-              <span className="text-[10px] font-medium leading-tight">{t(item.labelKey, item.defaultLabel ?? '')}</span>
+              <item.icon size={20} />
             </Link>
           );
         })}
