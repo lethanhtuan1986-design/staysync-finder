@@ -141,6 +141,17 @@ export const Navbar = () => {
 
           {/* Mobile header right */}
           <div className="md:hidden flex items-center gap-1">
+            <Link
+              to="/policy?tab=about"
+              className={`p-2 rounded-lg transition-colors ${
+                isTransparent
+                  ? 'text-white hover:bg-white/10'
+                  : 'text-primary hover:bg-primary/10'
+              }`}
+              aria-label={t('nav.about')}
+            >
+              <Building2 size={20} />
+            </Link>
             {provinceName && (
               <button
                 type="button"
